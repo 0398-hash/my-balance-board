@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="体と心のバランスを見える化する体調管理アプリ">
+  
+  <!-- PWA設定 -->
+  <meta name="theme-color" content="#a78bfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Balance">
+  
+  <title>My Balance Board</title>
+  
+  <!-- アイコン（Base64埋め込み） -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2E3OGJmYTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNlYzQ4OTk7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMTIwIiB5PSIxODAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyMDAiIHJ4PSIzMCIgZmlsbD0iIzg2ZWZhYyIvPjxyZWN0IHg9IjIyMCIgeT0iMTQwIiB3aWR0aD0iNjAiIGhlaWdodD0iMjQwIiByeD0iMzAiIGZpbGw9IiNmY2E1YTUiLz48Y2lyY2xlIGN4PSIzNzAiIGN5PSIyMDAiIHI9IjMwIiBmaWxsPSJ3aGl0ZSIvPjxyZWN0IHg9IjM1MCIgeT0iMjQwIiB3aWR0aD0iNDAiIGhlaWdodD0iMTAwIiByeD0iMjAiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDAiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2E3OGJmYTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNlYzQ4OTk7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgeD0iMTIwIiB5PSIxODAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyMDAiIHJ4PSIzMCIgZmlsbD0iIzg2ZWZhYyIvPjxyZWN0IHg9IjIyMCIgeT0iMTQwIiB3aWR0aD0iNjAiIGhlaWdodD0iMjQwIiByeD0iMzAiIGZpbGw9IiNmY2E1YTUiLz48Y2lyY2xlIGN4PSIzNzAiIGN5PSIyMDAiIHI9IjMwIiBmaWxsPSJ3aGl0ZSIvPjxyZWN0IHg9IjM1MCIgeT0iMjQwIiB3aWR0aD0iNDAiIGhlaWdodD0iMTAwIiByeD0iMjAiIGZpbGw9IndoaXRlIi8+PC9zdmc+">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Recharts -->
+  <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+  
+  <!-- Babel Standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
+    // ローカルストレージ管理
+    class StorageManager {
+      static STORAGE_KEY = 'balanceRecords';
+      static saveRecords(records) {
+        try {
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(records));
+          return true;
+        } catch (error) {
+          console.error('保存エラー:', error);
+          return false;
+        }
+      }
+      static loadRecords() {
+        try {
+          const saved = localStorage.getItem(this.STORAGE_KEY);
+          return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+          console.error('読み込みエラー:', error);
+          return [];
+        }
+      }
+    }
+
+    // 日付ユーティリティ
+    class DateUtils {
+      static formatDateShort(dateString) {
+        const date = new Date(dateString);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+      }
+      static toInputFormat(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      static getOneMonthAgo(date) {
+        const result = new Date(date);
+        result.setMonth(result.getMonth() - 1);
+        return result;
+      }
+      static filterRecordsByDateRange(records, startDate, endDate) {
+        return records.filter(record => {
+          const recordDate = new Date(record.date);
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          return recordDate >= start && recordDate <= end;
+        }).sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+    }
+
+    // データエクスポート
+    class DataExporter {
+      static generateAnalysisPrompt(records, startDate, endDate) {
+        const filteredRecords = DateUtils.filterRecordsByDateRange(records, startDate, endDate);
+        if (filteredRecords.length === 0) return '指定期間にデータがありません。';
+        
+        const dataText = filteredRecords.map(r => 
+          `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`
+        ).join('\n');
+        const periodText = `${startDate} 〜 ${endDate}`;
+        
+        return `私は自分の状態を説明するのが苦手です。以下の期間（${periodText}）の記録を詳細に分析し、2つのセクションに分けて回答してください。
+
+【回答の構成】
+
+**セクション1: 私への寄り添いメッセージ**
+優しい口調で、私に向けて以下を伝えてください：
+- この期間の頑張りや変化への労いの言葉
+- 気づいたパターンや傾向についてのアドバイス
+- 今後気をつけるとよいこと
+
+**セクション2: 支援員さんへの共有用（必ず以下の形式で）**
+
+▼ここからコピー▼
+
+【期間】
+${periodText}
+
+【バランス分析】
+体と心の数値の乖離、バランスの状態について
+
+【変化のパターン】
+数値の推移から見える傾向、波の特徴
+
+【注意すべき点】
+今後のリスクや気をつけるべきこと
+
+【支援員さんへ】
+面談で確認してほしいポイント、サポートのアドバイス
+
+▲ここまでコピー▲
+
+※「▼ここからコピー▼」と「▲ここまでコピー▲」の目印は必ず入れてください。この間の内容をメールアプリに貼り付けます。
+
+データ：
+${dataText}`;
+      }
+
+      static generateEmailContent(records, startDate, endDate, aiAnalysisResult = '') {
+        const filteredRecords = DateUtils.filterRecordsByDateRange(records, startDate, endDate);
+        if (filteredRecords.length === 0) return '指定期間にデータがありません。';
+        
+        const dataText = filteredRecords.map(r => 
+          `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`
+        ).join('\n');
+        const periodText = `${startDate} 〜 ${endDate}`;
+        const aiSection = aiAnalysisResult.trim() ? `
+─────────────────────────
+【AIによる分析結果】
+─────────────────────────
+
+${aiAnalysisResult.trim()}
+
+─────────────────────────
+
+` : '';
+        
+        return `件名: 私の体調レポート（${periodText}）
+
+本文:
+
+支援員様
+
+お疲れ様です。私の体調記録（体と心の10段階評価）を送付します。面談の際の参考にしていただければ幸いです。
+
+${aiSection}【期間】
+${periodText}（全${filteredRecords.length}日分）
+
+【詳細データ】
+
+${dataText}
+
+よろしくお願いいたします。`;
+      }
+
+      static async copyToClipboard(text) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            return { success: true, method: 'modern' };
+          }
+          
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.top = '0';
+          textArea.style.left = '0';
+          textArea.style.width = '2em';
+          textArea.style.height = '2em';
+          textArea.style.padding = '0';
+          textArea.style.border = 'none';
+          textArea.style.outline = 'none';
+          textArea.style.boxShadow = 'none';
+          textArea.style.background = 'transparent';
+          textArea.setAttribute('readonly', '');
+          document.body.appendChild(textArea);
+          
+          if (navigator.userAgent.match(/ipad|iphone/i)) {
+            const range = document.createRange();
+            range.selectNodeContents(textArea);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            textArea.setSelectionRange(0, 999999);
+          } else {
+            textArea.select();
+            textArea.setSelectionRange(0, 999999);
+          }
+          
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          if (successful) return { success: true, method: 'fallback' };
+          return { success: false, error: '自動コピーが制限されています' };
+        } catch (error) {
+          return { success: false, error: '自動コピーが制限されています' };
+        }
+      }
+
+      static async shareOrCopy(text, title = 'データ共有') {
+        if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+          try {
+            await navigator.share({ title: title, text: text });
+            return { success: true, method: 'share' };
+          } catch (error) {
+            if (error.name !== 'AbortError') {
+              console.log('Share API失敗、コピーへフォールバック');
+            }
+          }
+        }
+        return await this.copyToClipboard(text);
+      }
+    }
+
+    // スライダーコンポーネント
+    const SliderInput = ({ value, onChange, color, label, icon, bgColor }) => {
+      const [isDragging, setIsDragging] = useState(false);
+      const [touchStart, setTouchStart] = useState(null);
+
+      const handleChange = (e) => {
+        if (isDragging) onChange(Number(e.target.value));
+      };
+
+      const handleTouchStart = (e) => {
+        const touch = e.touches[0];
+        setTouchStart({ x: touch.clientX, y: touch.clientY });
+      };
+
+      const handleTouchMove = (e) => {
+        if (touchStart) {
+          const touch = e.touches[0];
+          const moveX = Math.abs(touch.clientX - touchStart.x);
+          const moveY = Math.abs(touch.clientY - touchStart.y);
+          if (moveX > 5 && moveX > moveY) setIsDragging(true);
+        }
+      };
+
+      const handleTouchEnd = () => {
+        setIsDragging(false);
+        setTouchStart(null);
+      };
+
+      return (
+        <div className="py-6">
+          <label className="block text-lg font-semibold text-gray-700 mb-4">
+            {icon} {label} <span className={`${color} text-2xl ml-2`}>{value}</span>/10
+          </label>
+          <div className="px-2">
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={value}
+              onChange={handleChange}
+              onMouseDown={() => setIsDragging(true)}
+              onMouseUp={() => setIsDragging(false)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="w-full h-2 rounded-lg cursor-pointer slider-input"
+              style={{
+                background: `linear-gradient(to right, ${bgColor === 'bg-green-400' ? '#86efac' : '#fca5a5'} ${value * 10}%, #e5e7eb ${value * 10}%)`,
+                color: bgColor === 'bg-green-400' ? '#86efac' : '#fca5a5'
+              }}
+            />
+          </div>
+          <div className="flex gap-2 mt-6 flex-wrap justify-center">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+              <button
+                key={num}
+                onClick={() => onChange(num)}
+                className={`w-12 h-12 rounded-xl font-semibold transition-all text-lg ${
+                  value === num ? `${bgColor} text-white shadow-lg scale-110` : 'bg-gray-100 text-gray-600 hover:bg-gray-200 active:scale-95'
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // メインアプリ
+    const MyBalanceBoard = () => {
+      const today = new Date();
+      const oneMonthAgo = DateUtils.getOneMonthAgo(today);
+      
+      const [selectedDate, setSelectedDate] = useState(DateUtils.toInputFormat(new Date()));
+      const [physicalScore, setPhysicalScore] = useState(5);
+      const [mentalScore, setMentalScore] = useState(5);
+      const [memo, setMemo] = useState('');
+      const [records, setRecords] = useState([]);
+      const [copySuccess, setCopySuccess] = useState(false);
+      const [showRecordsList, setShowRecordsList] = useState(false);
+      const [notification, setNotification] = useState(null);
+      const [showBackupTextArea, setShowBackupTextArea] = useState(false);
+      const [backupText, setBackupText] = useState('');
+      const [showEmailContent, setShowEmailContent] = useState(false);
+      const [emailContent, setEmailContent] = useState('');
+      const [isEditing, setIsEditing] = useState(false);
+      const [editingDate, setEditingDate] = useState(null);
+      const [aiAnalysisResult, setAiAnalysisResult] = useState('');
+      const [exportStartDate, setExportStartDate] = useState(DateUtils.toInputFormat(oneMonthAgo));
+      const [exportEndDate, setExportEndDate] = useState(DateUtils.toInputFormat(today));
+
+      useEffect(() => {
+        setRecords(StorageManager.loadRecords());
+      }, []);
+
+      useEffect(() => {
+        if (!isEditing) {
+          const existingRecord = records.find(r => r.date === selectedDate);
+          if (existingRecord) {
+            setPhysicalScore(existingRecord.physical);
+            setMentalScore(existingRecord.mental);
+            setMemo(existingRecord.memo);
+          } else {
+            setPhysicalScore(5);
+            setMentalScore(5);
+            setMemo('');
+          }
+        }
+      }, [selectedDate, records, isEditing]);
+
+      const showNotification = (message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+      };
+
+      const saveRecord = () => {
+        const newRecord = {
+          date: selectedDate,
+          timestamp: new Date().toISOString(),
+          physical: physicalScore,
+          mental: mentalScore,
+          memo: memo.trim()
+        };
+
+        let updatedRecords;
+        if (isEditing && editingDate !== selectedDate) {
+          const filteredRecords = records.filter(r => r.date !== editingDate && r.date !== selectedDate);
+          updatedRecords = [...filteredRecords, newRecord].sort((a, b) => new Date(a.date) - new Date(b.date));
+        } else {
+          const filteredRecords = records.filter(r => r.date !== selectedDate);
+          updatedRecords = [...filteredRecords, newRecord].sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        setRecords(updatedRecords);
+        StorageManager.saveRecords(updatedRecords);
+        
+        if (isEditing) {
+          showNotification('記録を更新しました！', 'success');
+          setIsEditing(false);
+          setEditingDate(null);
+        } else {
+          showNotification('記録しました！', 'success');
+        }
+      };
+
+      const handleEditRecord = (record) => {
+        setSelectedDate(record.date);
+        setPhysicalScore(record.physical);
+        setMentalScore(record.mental);
+        setMemo(record.memo);
+        setIsEditing(true);
+        setEditingDate(record.date);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showNotification(`${record.date}のデータを編集中`, 'info');
+      };
+
+      const cancelEdit = () => {
+        setIsEditing(false);
+        setEditingDate(null);
+        setSelectedDate(DateUtils.toInputFormat(new Date()));
+        setPhysicalScore(5);
+        setMentalScore(5);
+        setMemo('');
+        showNotification('編集をキャンセルしました', 'info');
+      };
+
+      const getLastSevenDays = () => {
+        const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const last7 = sorted.slice(0, 7).reverse();
+        return last7.map(record => ({
+          date: DateUtils.formatDateShort(record.date),
+          fullDate: record.date,
+          体: record.physical,
+          心: record.mental,
+          memo: record.memo
+        }));
+      };
+
+      const getFilteredRecordsCount = () => {
+        const filtered = DateUtils.filterRecordsByDateRange(records, exportStartDate, exportEndDate);
+        return filtered.length;
+      };
+
+      const handleCopyToClipboard = async () => {
+        if (records.length === 0) {
+          showNotification('記録がありません', 'error');
+          return;
+        }
+        const filteredCount = getFilteredRecordsCount();
+        if (filteredCount === 0) {
+          showNotification('指定期間にデータがありません', 'error');
+          return;
+        }
+        const promptText = DataExporter.generateAnalysisPrompt(records, exportStartDate, exportEndDate);
+        const result = await DataExporter.shareOrCopy(promptText, 'AI分析用データ');
+        
+        if (result.success) {
+          setCopySuccess(true);
+          if (result.method === 'share') {
+            showNotification('✓ 共有しました！', 'success');
+          } else {
+            showNotification(`✓ コピー成功！（${filteredCount}日分）\nClaudeに貼り付けてください`, 'success');
+          }
+          setTimeout(() => setCopySuccess(false), 3000);
+          setShowBackupTextArea(false);
+        } else {
+          setBackupText(promptText);
+          setShowBackupTextArea(true);
+          showNotification('下のテキストエリアをタップして全選択→コピーしてください', 'info');
+        }
+      };
+
+      const handleCopyBackupText = async () => {
+        const result = await DataExporter.copyToClipboard(backupText);
+        if (result.success) {
+          showNotification('✓ コピー成功！\nClaudeに貼り付けてください', 'success');
+          setShowBackupTextArea(false);
+        } else {
+          showNotification('テキストエリアをタップすると全選択されます', 'info');
+        }
+      };
+
+      const handleShowEmailContent = () => {
+        if (records.length === 0) {
+          showNotification('記録がありません', 'error');
+          return;
+        }
+        const filteredCount = getFilteredRecordsCount();
+        if (filteredCount === 0) {
+          showNotification('指定期間にデータがありません', 'error');
+          return;
+        }
+        const content = DataExporter.generateEmailContent(records, exportStartDate, exportEndDate, aiAnalysisResult);
+        setEmailContent(content);
+        setShowEmailContent(true);
+      };
+
+      const handleCopyEmailContent = async () => {
+        const result = await DataExporter.shareOrCopy(emailContent, '体調レポート');
+        if (result.success) {
+          if (result.method === 'share') {
+            showNotification('✓ 共有しました！', 'success');
+          } else {
+            showNotification('✓ メール本文をコピーしました！\nメールアプリに貼り付けて送信してください', 'success');
+          }
+        } else {
+          showNotification('テキストエリアをタップすると全選択されます', 'info');
+        }
+      };
+
+      const handleTextAreaClick = (e) => {
+        e.target.select();
+      };
+
+      const setPresetPeriod = (days) => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        setExportStartDate(DateUtils.toInputFormat(start));
+        setExportEndDate(DateUtils.toInputFormat(end));
+      };
+
+      const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+          const data = payload[0].payload;
+          return (
+            <div className="bg-white p-4 rounded-xl shadow-lg border-2 border-gray-200 max-w-xs">
+              <p className="font-bold text-gray-700 mb-2">{data.fullDate}</p>
+              <p className="text-green-600 font-semibold">体: {data.体}/10</p>
+              <p className="text-red-500 font-semibold">心: {data.心}/10</p>
+              {data.memo && (
+                <p className="text-gray-600 text-sm mt-2 border-t pt-2">💭 {data.memo}</p>
+              )}
+            </div>
+          );
+        }
+        return null;
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 pb-8">
+          <style>{`
+            .slider-input { -webkit-appearance: none; appearance: none; }
+            .slider-input::-webkit-slider-thumb {
+              -webkit-appearance: none; appearance: none;
+              width: 44px; height: 44px; border-radius: 50%;
+              background: white; cursor: pointer;
+              border: 4px solid currentColor;
+              box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+              transition: transform 0.15s ease;
+            }
+            .slider-input::-webkit-slider-thumb:hover { transform: scale(1.1); }
+            .slider-input::-webkit-slider-thumb:active { transform: scale(1.15); }
+            .slider-input::-moz-range-thumb {
+              width: 44px; height: 44px; border-radius: 50%;
+              background: white; cursor: pointer;
+              border: 4px solid currentColor;
+              box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+              transition: transform 0.15s ease;
+            }
+            .slider-input::-moz-range-thumb:hover { transform: scale(1.1); }
+            .slider-input::-moz-range-thumb:active { transform: scale(1.15); }
+          `}</style>
+
+          {notification && (
+            <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg font-bold text-white transition-all max-w-md text-center ${
+              notification.type === 'success' ? 'bg-green-500' :
+              notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`}>
+              {notification.message}
+            </div>
+          )}
+
+          <div className="max-w-4xl mx-auto space-y-6">
+            
+            <div className="text-center py-6">
+              <h1 className="text-3xl font-bold text-gray-700 mb-2">My Balance Board</h1>
+              <p className="text-gray-500 text-sm">あなたのバランスを見える化</p>
+            </div>
+
+            <div className={`rounded-2xl shadow-lg p-6 space-y-6 transition-all ${
+              isEditing ? 'bg-amber-50 border-4 border-amber-300' : 'bg-white'
+            }`}>
+              
+              {isEditing && (
+                <div className="bg-amber-100 border-2 border-amber-400 rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-amber-800 text-lg">✏️ 編集モード</p>
+                    <p className="text-sm text-amber-700">{editingDate}のデータを編集中です</p>
+                  </div>
+                  <button onClick={cancelEdit} className="px-4 py-2 bg-white text-amber-700 font-semibold rounded-lg hover:bg-amber-50 active:scale-95 transition-all border-2 border-amber-300">
+                    キャンセル
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-3">
+                  {isEditing ? '📅 変更後の日付' : '📅 記録する日付'}
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  max={DateUtils.toInputFormat(new Date())}
+                  className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-400 focus:outline-none"
+                />
+              </div>
+
+              <SliderInput value={physicalScore} onChange={setPhysicalScore} color="text-green-500" label="体の調子" icon="🧍" bgColor="bg-green-400" />
+              <SliderInput value={mentalScore} onChange={setMentalScore} color="text-red-400" label="心の調子" icon="💗" bgColor="bg-red-300" />
+
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-3">📝 今日のメモ</label>
+                <textarea
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="気になったこと、感じたこと..."
+                  className="w-full p-4 text-base border-2 border-gray-200 rounded-xl focus:border-purple-300 focus:outline-none resize-none"
+                  rows="4"
+                />
+              </div>
+
+              <button
+                onClick={saveRecord}
+                className={`w-full font-bold py-5 px-6 rounded-xl hover:shadow-lg transform hover:scale-105 active:scale-95 transition-all text-lg ${
+                  isEditing ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white' : 'bg-gradient-to-r from-purple-400 to-pink-400 text-white'
+                }`}
+              >
+                {isEditing ? '✓ 更新する' : '✓ 記録する'}
+              </button>
+            </div>
+
+            {records.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <h2 className="text-xl font-bold text-gray-700 mb-4">📊 過去7日間の推移</h2>
+                <p className="text-sm text-gray-500 mb-4">グラフをタップするとメモが表示されます</p>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={getLastSevenDays()}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="date" stroke="#9ca3af" />
+                    <YAxis domain={[0, 10]} stroke="#9ca3af" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Bar dataKey="体" fill="#86efac" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="心" fill="#fca5a5" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {records.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <button onClick={() => setShowRecordsList(!showRecordsList)} className="w-full flex items-center justify-between text-xl font-bold text-gray-700 mb-4">
+                  <span>📋 記録一覧</span>
+                  <span className="text-2xl">{showRecordsList ? '▼' : '▶'}</span>
+                </button>
+                
+                {showRecordsList && (
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {[...records].sort((a, b) => new Date(b.date) - new Date(a.date)).map((record, index) => (
+                      <div key={index} className="border-2 border-gray-100 rounded-xl p-4 hover:border-purple-200 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-gray-700">{record.date}</span>
+                          <div className="flex gap-2 items-center">
+                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-lg font-semibold text-sm">体 {record.physical}</span>
+                            <span className="px-3 py-1 bg-red-100 text-red-600 rounded-lg font-semibold text-sm">心 {record.mental}</span>
+                            <button onClick={() => handleEditRecord(record)} className="px-3 py-1 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 active:scale-95 transition-all text-sm">
+                              ✏️ 編集
+                            </button>
+                          </div>
+                        </div>
+                        {record.memo && <p className="text-gray-600 text-sm mt-2 pl-2 border-l-4 border-purple-200">{record.memo}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {records.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
+                <h2 className="text-xl font-bold text-gray-700 mb-3">📤 データを共有</h2>
+                
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 space-y-4">
+                  <h3 className="font-bold text-gray-700 text-lg">📆 出力期間を選択</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">開始日</label>
+                      <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} max={exportEndDate} className="w-full p-3 text-base border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">終了日</label>
+                      <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} min={exportStartDate} max={DateUtils.toInputFormat(new Date())} className="w-full p-3 text-base border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none" />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap">
+                    <button onClick={() => setPresetPeriod(7)} className="px-4 py-2 bg-white border-2 border-purple-300 text-purple-700 font-semibold rounded-lg hover:bg-purple-50 active:scale-95 transition-all text-sm">直近1週間</button>
+                    <button onClick={() => setPresetPeriod(30)} className="px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 active:scale-95 transition-all text-sm">直近1ヶ月</button>
+                    <button onClick={() => setPresetPeriod(90)} className="px-4 py-2 bg-white border-2 border-purple-300 text-purple-700 font-semibold rounded-lg hover:bg-purple-50 active:scale-95 transition-all text-sm">直近3ヶ月</button>
+                  </div>
+
+                  <p className="text-sm text-gray-600">選択期間: <span className="font-bold text-purple-700">{getFilteredRecordsCount()}日分</span>のデータ</p>
+                </div>
+
+                <div>
+                  <p className="text-gray-600 text-sm mb-3">💡 データをコピーして、Claudeなどに貼り付けると詳しい分析が受けられます</p>
+                  <button onClick={handleCopyToClipboard} className={`w-full font-bold py-5 px-6 rounded-xl transition-all text-lg ${
+                    copySuccess ? 'bg-green-400 text-white' : 'bg-gradient-to-r from-blue-400 to-purple-400 text-white hover:shadow-lg transform hover:scale-105 active:scale-95'
+                  }`}>
+                    {copySuccess ? '✓ コピーしました！' : '📋 AI分析用にコピー'}
+                  </button>
+
+                  {showBackupTextArea && (
+                    <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                      <p className="text-sm text-yellow-800 mb-3 font-semibold">⚠️ 自動コピーが制限されています。テキストエリアをタップすると全選択されます：</p>
+                      <textarea value={backupText} readOnly className="w-full p-3 border-2 border-gray-300 rounded-lg text-sm font-mono h-40 mb-3 cursor-pointer" onClick={handleTextAreaClick} />
+                      <div className="flex gap-2">
+                        <button onClick={handleCopyBackupText} className="flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 active:scale-95 transition-all">もう一度コピーを試す</button>
+                        <button onClick={() => setShowBackupTextArea(false)} className="px-4 py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 active:scale-95 transition-all">閉じる</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                  <h3 className="font-bold text-gray-700 text-lg mb-3">🤖 AI分析結果を貼り付け</h3>
+                  <p className="text-sm text-gray-600 mb-3">上の「AI分析用にコピー」でClaudeに分析してもらった結果を、ここに貼り付けてください。メール本文に自動で含まれます。</p>
+                  <textarea value={aiAnalysisResult} onChange={(e) => setAiAnalysisResult(e.target.value)} placeholder="Claudeの分析結果をここに貼り付けてください..." className="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none resize-none text-sm" rows="8" />
+                  {aiAnalysisResult.trim() && <p className="text-sm text-blue-700 mt-2 font-semibold">✓ AI分析結果が入力されています（メールに含まれます）</p>}
+                </div>
+
+                <div>
+                  <p className="text-gray-600 text-sm mb-3">📧 支援員さんに送るメール本文を表示します</p>
+                  <button onClick={handleShowEmailContent} className="w-full bg-gradient-to-r from-green-400 to-teal-400 text-white font-bold py-5 px-6 rounded-xl hover:shadow-lg transform hover:scale-105 active:scale-95 transition-all text-lg">
+                    📨 メール本文を表示
+                  </button>
+
+                  {showEmailContent && (
+                    <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                      <p className="text-sm text-green-800 mb-3 font-semibold">📧 以下の内容をメールアプリにコピー&貼り付けして送信してください（タップで全選択）：</p>
+                      <textarea value={emailContent} readOnly className="w-full p-3 border-2 border-gray-300 rounded-lg text-sm font-mono h-64 mb-3 cursor-pointer" onClick={handleTextAreaClick} />
+                      <div className="flex gap-2">
+                        <button onClick={handleCopyEmailContent} className="flex-1 bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 active:scale-95 transition-all">📋 この内容をコピー</button>
+                        <button onClick={() => setShowEmailContent(false)} className="px-4 py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 active:scale-95 transition-all">閉じる</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="text-center text-gray-400 text-sm py-4">🔒 データは全てあなたのデバイスに安全に保存されます</div>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<MyBalanceBoard />, document.getElementById('root'));
+  </script>
+</body>
+</html>
