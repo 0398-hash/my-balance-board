@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Balance Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
+    const App = () => {
+      const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+      const [physicalScore, setPhysicalScore] = useState(5);
+      const [mentalScore, setMentalScore] = useState(5);
+      const [memo, setMemo] = useState('');
+      const [records, setRecords] = useState([]);
+      const [notification, setNotification] = useState(null);
+      const [showRecordsList, setShowRecordsList] = useState(false);
+      const [isEditing, setIsEditing] = useState(false);
+      const [editingDate, setEditingDate] = useState(null);
+      const [aiAnalysisResult, setAiAnalysisResult] = useState('');
+      const [showEmailContent, setShowEmailContent] = useState(false);
+      const [emailContent, setEmailContent] = useState('');
+      const [exportStartDate, setExportStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        return d.toISOString().split('T')[0];
+      });
+      const [exportEndDate, setExportEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+      useEffect(() => {
+        const saved = localStorage.getItem('balanceRecords');
+        if (saved) setRecords(JSON.parse(saved));
+      }, []);
+
+      useEffect(() => {
+        if (!isEditing) {
+          const existing = records.find(r => r.date === selectedDate);
+          if (existing) {
+            setPhysicalScore(existing.physical);
+            setMentalScore(existing.mental);
+            setMemo(existing.memo);
+          } else {
+            setPhysicalScore(5);
+            setMentalScore(5);
+            setMemo('');
+          }
+        }
+      }, [selectedDate, records, isEditing]);
+
+      const notify = (msg, type = 'success') => {
+        setNotification({ msg, type });
+        setTimeout(() => setNotification(null), 3000);
+      };
+
+      const saveRecord = () => {
+        const newRecord = { date: selectedDate, physical: physicalScore, mental: mentalScore, memo: memo.trim() };
+        let updated;
+        if (isEditing && editingDate !== selectedDate) {
+          updated = [...records.filter(r => r.date !== editingDate && r.date !== selectedDate), newRecord];
+        } else {
+          updated = [...records.filter(r => r.date !== selectedDate), newRecord];
+        }
+        updated.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setRecords(updated);
+        localStorage.setItem('balanceRecords', JSON.stringify(updated));
+        notify(isEditing ? '記録を更新しました！' : '記録しました！');
+        setIsEditing(false);
+        setEditingDate(null);
+      };
+
+      const getLast7Days = () => {
+        const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+        return sorted.slice(0, 7).reverse().map(r => ({
+          date: new Date(r.date).toLocaleDateString('ja-JP', {month: 'numeric', day: 'numeric'}),
+          fullDate: r.date,
+          体: r.physical,
+          心: r.mental,
+          memo: r.memo
+        }));
+      };
+
+      const getFiltered = () => {
+        return records.filter(r => {
+          const d = new Date(r.date);
+          return d >= new Date(exportStartDate) && d <= new Date(exportEndDate);
+        }).sort((a, b) => new Date(a.date) - new Date(b.date));
+      };
+
+      const copyText = async (text) => {
+        try {
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.top = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch { return false; }
+      };
+
+      const handleCopy = async () => {
+        const filtered = getFiltered();
+        if (!filtered.length) { notify('データがありません', 'error'); return; }
+        const data = filtered.map(r => `日付: ${r.date}\n体: ${r.physical}/10\n心: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`).join('\n');
+        const text = `私は自分の状態を説明するのが苦手です。以下の記録を分析してください。
+
+**セクション1: 私への寄り添いメッセージ**
+**セクション2: 支援員さんへの共有用**
+
+▼ここからコピー▼
+【期間】${exportStartDate} 〜 ${exportEndDate}
+【バランス分析】体と心の乖離について
+【変化のパターン】数値の推移
+【注意すべき点】リスク
+【支援員さんへ】面談で確認してほしいこと
+▲ここまでコピー▲
+
+データ：
+${data}`;
+        if (await copyText(text)) {
+          notify(`✓ ${filtered.length}日分コピー成功！`);
+        } else {
+          alert('コピー失敗。テキストを選択してコピーしてください:\n\n' + text);
+        }
+      };
+
+      const handleEmail = () => {
+        const filtered = getFiltered();
+        if (!filtered.length) { notify('データがありません', 'error'); return; }
+        const data = filtered.map(r => `日付: ${r.date}\n体: ${r.physical}/10\n心: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`).join('\n');
+        const aiSection = aiAnalysisResult.trim() ? `\n─────────────\n【AIによる分析結果】\n${aiAnalysisResult.trim()}\n─────────────\n\n` : '';
+        setEmailContent(`件名: 私の体調レポート（${exportStartDate} 〜 ${exportEndDate}）
+
+本文:
+
+支援員様
+
+お疲れ様です。体調記録を送付します。
+${aiSection}【期間】${exportStartDate} 〜 ${exportEndDate}（全${filtered.length}日分）
+
+【詳細データ】
+${data}
+
+よろしくお願いいたします。`);
+        setShowEmailContent(true);
+      };
+
+      const Slider = ({ value, onChange, label, icon, color, bgColor }) => {
+        const [dragging, setDragging] = useState(false);
+        const [touchStart, setTouchStart] = useState(null);
+        return (
+          <div className="py-6">
+            <label className="block text-lg font-semibold text-gray-700 mb-4">
+              {icon} {label} <span className={`${color} text-2xl ml-2`}>{value}</span>/10
+            </label>
+            <div className="px-2">
+              <input type="range" min="1" max="10" value={value}
+                onChange={(e) => dragging && onChange(+e.target.value)}
+                onMouseDown={() => setDragging(true)}
+                onMouseUp={() => setDragging(false)}
+                onTouchStart={(e) => { const t = e.touches[0]; setTouchStart({x: t.clientX, y: t.clientY}); }}
+                onTouchMove={(e) => { if (touchStart) { const t = e.touches[0]; const mx = Math.abs(t.clientX - touchStart.x); const my = Math.abs(t.clientY - touchStart.y); if (mx > 5 && mx > my) setDragging(true); } }}
+                onTouchEnd={() => { setDragging(false); setTouchStart(null); }}
+                className="w-full h-2 rounded-lg cursor-pointer"
+                style={{background: `linear-gradient(to right, ${bgColor === 'green' ? '#86efac' : '#fca5a5'} ${value*10}%, #e5e7eb ${value*10}%)`, WebkitAppearance: 'none', appearance: 'none'}}
+              />
+            </div>
+            <div className="flex gap-2 mt-6 flex-wrap justify-center">
+              {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                <button key={n} onClick={() => onChange(n)}
+                  className={`w-12 h-12 rounded-xl font-semibold text-lg transition-all ${value === n ? `bg-${bgColor}-400 text-white shadow-lg scale-110` : 'bg-gray-100 text-gray-600 hover:bg-gray-200 active:scale-95'}`}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 pb-8">
+          <style>{`
+            input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 44px; height: 44px; border-radius: 50%; background: white; cursor: pointer; border: 4px solid currentColor; box-shadow: 0 3px 10px rgba(0,0,0,0.25); }
+            input[type="range"]::-moz-range-thumb { width: 44px; height: 44px; border-radius: 50%; background: white; cursor: pointer; border: 4px solid currentColor; box-shadow: 0 3px 10px rgba(0,0,0,0.25); }
+          `}</style>
+          {notification && (
+            <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg font-bold text-white ${notification.type === 'success' ? 'bg-green-500' : notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`}>
+              {notification.msg}
+            </div>
+          )}
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="text-center py-6">
+              <h1 className="text-3xl font-bold text-gray-700 mb-2">My Balance Board</h1>
+              <p className="text-gray-500 text-sm">あなたのバランスを見える化</p>
+            </div>
+
+            <div className={`rounded-2xl shadow-lg p-6 space-y-6 ${isEditing ? 'bg-amber-50 border-4 border-amber-300' : 'bg-white'}`}>
+              {isEditing && (
+                <div className="bg-amber-100 border-2 border-amber-400 rounded-xl p-4 flex items-center justify-between">
+                  <div><p className="font-bold text-amber-800 text-lg">✏️ 編集モード</p><p className="text-sm text-amber-700">{editingDate}を編集中</p></div>
+                  <button onClick={() => { setIsEditing(false); setEditingDate(null); setSelectedDate(new Date().toISOString().split('T')[0]); setPhysicalScore(5); setMentalScore(5); setMemo(''); notify('キャンセルしました', 'info'); }} className="px-4 py-2 bg-white text-amber-700 font-semibold rounded-lg border-2 border-amber-300">キャンセル</button>
+                </div>
+              )}
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-3">{isEditing ? '📅 変更後の日付' : '📅 記録する日付'}</label>
+                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} max={new Date().toISOString().split('T')[0]} className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-purple-400 focus:outline-none" />
+              </div>
+              <Slider value={physicalScore} onChange={setPhysicalScore} label="体の調子" icon="🧍" color="text-green-500" bgColor="green" />
+              <Slider value={mentalScore} onChange={setMentalScore} label="心の調子" icon="💗" color="text-red-400" bgColor="red" />
+              <div>
+                <label className="block text-lg font-semibold text-gray-700 mb-3">📝 今日のメモ</label>
+                <textarea value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="気になったこと..." className="w-full p-4 text-base border-2 border-gray-200 rounded-xl focus:border-purple-300 focus:outline-none resize-none" rows="4" />
+              </div>
+              <button onClick={saveRecord} className={`w-full font-bold py-5 px-6 rounded-xl text-lg ${isEditing ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-purple-400 to-pink-400'} text-white hover:shadow-lg transform hover:scale-105 active:scale-95 transition-all`}>
+                {isEditing ? '✓ 更新する' : '✓ 記録する'}
+              </button>
+            </div>
+
+            {records.length > 0 && (
+              <>
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-bold text-gray-700 mb-4">📊 過去7日間の推移</h2>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={getLast7Days()}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="date" stroke="#9ca3af" />
+                      <YAxis domain={[0, 10]} stroke="#9ca3af" />
+                      <Tooltip content={({active, payload}) => {
+                        if (active && payload && payload.length) {
+                          const d = payload[0].payload;
+                          return <div className="bg-white p-4 rounded-xl shadow-lg border-2"><p className="font-bold">{d.fullDate}</p><p className="text-green-600">体: {d.体}/10</p><p className="text-red-500">心: {d.心}/10</p>{d.memo && <p className="text-sm mt-2 pt-2 border-t">💭 {d.memo}</p>}</div>;
+                        }
+                        return null;
+                      }} />
+                      <Legend />
+                      <Bar dataKey="体" fill="#86efac" radius={[8,8,0,0]} />
+                      <Bar dataKey="心" fill="#fca5a5" radius={[8,8,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <button onClick={() => setShowRecordsList(!showRecordsList)} className="w-full flex items-center justify-between text-xl font-bold text-gray-700 mb-4">
+                    <span>📋 記録一覧</span><span className="text-2xl">{showRecordsList ? '▼' : '▶'}</span>
+                  </button>
+                  {showRecordsList && (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {[...records].sort((a,b) => new Date(b.date) - new Date(a.date)).map((r, i) => (
+                        <div key={i} className="border-2 border-gray-100 rounded-xl p-4 hover:border-purple-200 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold">{r.date}</span>
+                            <div className="flex gap-2">
+                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-lg font-semibold text-sm">体 {r.physical}</span>
+                              <span className="px-3 py-1 bg-red-100 text-red-600 rounded-lg font-semibold text-sm">心 {r.mental}</span>
+                              <button onClick={() => { setSelectedDate(r.date); setPhysicalScore(r.physical); setMentalScore(r.mental); setMemo(r.memo); setIsEditing(true); setEditingDate(r.date); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3 py-1 bg-blue-500 text-white font-semibold rounded-lg text-sm hover:bg-blue-600 active:scale-95 transition-all">✏️ 編集</button>
+                            </div>
+                          </div>
+                          {r.memo && <p className="text-sm text-gray-600 pl-2 border-l-4 border-purple-200">{r.memo}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
+                  <h2 className="text-xl font-bold text-gray-700">📤 データを共有</h2>
+                  <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 space-y-4">
+                    <h3 className="font-bold text-lg">📆 出力期間</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-sm font-semibold mb-2">開始日</label><input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} className="w-full p-3 border-2 rounded-lg focus:border-purple-400 focus:outline-none" /></div>
+                      <div><label className="block text-sm font-semibold mb-2">終了日</label><input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} className="w-full p-3 border-2 rounded-lg focus:border-purple-400 focus:outline-none" /></div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <button onClick={() => { const e = new Date(); const s = new Date(); s.setDate(s.getDate() - 7); setExportStartDate(s.toISOString().split('T')[0]); setExportEndDate(e.toISOString().split('T')[0]); }} className="px-4 py-2 bg-white border-2 border-purple-300 text-purple-700 font-semibold rounded-lg text-sm hover:bg-purple-50 active:scale-95 transition-all">直近1週間</button>
+                      <button onClick={() => { const e = new Date(); const s = new Date(); s.setMonth(s.getMonth() - 1); setExportStartDate(s.toISOString().split('T')[0]); setExportEndDate(e.toISOString().split('T')[0]); }} className="px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg text-sm hover:bg-purple-600 active:scale-95 transition-all">直近1ヶ月</button>
+                      <button onClick={() => { const e = new Date(); const s = new Date(); s.setDate(s.getDate() - 90); setExportStartDate(s.toISOString().split('T')[0]); setExportEndDate(e.toISOString().split('T')[0]); }} className="px-4 py-2 bg-white border-2 border-purple-300 text-purple-700 font-semibold rounded-lg text-sm hover:bg-purple-50 active:scale-95 transition-all">直近3ヶ月</button>
+                    </div>
+                    <p className="text-sm text-gray-600">選択期間: <span className="font-bold text-purple-700">{getFiltered().length}日分</span></p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-3">💡 データをコピーして、Claudeに貼り付けると詳しい分析が受けられます</p>
+                    <button onClick={handleCopy} className="w-full bg-gradient-to-r from-blue-400 to-purple-400 text-white font-bold py-5 px-6 rounded-xl text-lg hover:shadow-lg transform hover:scale-105 active:scale-95 transition-all">📋 AI分析用にコピー</button>
+                  </div>
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                    <h3 className="font-bold text-lg mb-3">🤖 AI分析結果を貼り付け</h3>
+                    <p className="text-sm text-gray-600 mb-3">Claudeの分析結果をここに貼り付けてください。メール本文に自動で含まれます。</p>
+                    <textarea value={aiAnalysisResult} onChange={(e) => setAiAnalysisResult(e.target.value)} placeholder="Claudeの分析結果..." className="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none resize-none text-sm" rows="8" />
+                    {aiAnalysisResult.trim() && <p className="text-sm text-blue-700 mt-2 font-semibold">✓ AI分析結果が入力されています</p>}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-3">📧 支援員さんに送るメール本文を表示します</p>
+                    <button onClick={handleEmail} className="w-full bg-gradient-to-r from-green-400 to-teal-400 text-white font-bold py-5 px-6 rounded-xl text-lg hover:shadow-lg transform hover:scale-105 active:scale-95 transition-all">📨 メール本文を表示</button>
+                    {showEmailContent && (
+                      <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                        <p className="text-sm text-green-800 font-semibold mb-3">📧 以下をコピーしてメールで送信してください：</p>
+                        <textarea value={emailContent} readOnly onClick={(e) => e.target.select()} className="w-full p-3 border-2 border-gray-300 rounded-lg text-sm font-mono h-64 mb-3 cursor-pointer" />
+                        <div className="flex gap-2">
+                          <button onClick={async () => { if (await copyText(emailContent)) notify('✓ コピーしました！'); }} className="flex-1 bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 active:scale-95 transition-all">📋 コピー</button>
+                          <button onClick={() => setShowEmailContent(false)} className="px-4 py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 active:scale-95 transition-all">閉じる</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+            <div className="text-center text-gray-400 text-sm py-4">🔒 データは全てあなたのデバイスに保存されます</div>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
