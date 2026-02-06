@@ -1,185 +1,461 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Balance Board</title>
-    <style>
-        body { margin: 0; font-family: sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%); min-height: 100vh; padding: 15px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .label { font-size: 18px; font-weight: bold; color: #374151; margin-bottom: 15px; display: block; }
-        input[type="date"], textarea { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 12px; box-sizing: border-box; }
-        
-        /* スライダーの見た目修正 */
-        .slider-container { margin: 30px 0; }
-        .slider { width: 100%; height: 12px; border-radius: 6px; outline: none; -webkit-appearance: none; background: #e5e7eb; border: 1px solid #d1d5db; }
-        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 40px; height: 40px; background: white; border: 4px solid currentColor; border-radius: 50%; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
-        .physical-slider { color: #34d399; }
-        .mental-slider { color: #fca5a5; }
-
-        .btn { width: 100%; padding: 20px; font-size: 18px; font-weight: bold; color: white; border: none; border-radius: 15px; cursor: pointer; margin-top: 10px; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%); }
-        .btn-copy { background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); margin-top: 20px; }
-        
-        canvas { width: 100% !important; height: auto !important; background: #f9fafb; border-radius: 12px; margin-top: 10px; }
-        .record-item { background: #f9fafb; padding: 15px; margin: 10px 0; border-radius: 12px; border-left: 5px solid #a78bfa; }
-        .hidden { display: none; }
-        #notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 15px 30px; border-radius: 50px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Balance Board</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%); min-height: 100vh; padding: 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 40px; }
+.header h1 { font-size: 36px; color: #374151; margin: 0; }
+.header p { color: #6b7280; font-size: 14px; margin-top: 8px; }
+.card { background: white; border-radius: 24px; padding: 40px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.card.editing { background: #fef3c7; border: 4px solid #fbbf24; }
+.label { font-size: 18px; font-weight: bold; color: #374151; margin-bottom: 15px; display: block; }
+input[type="date"], textarea { width: 100%; padding: 16px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 12px; }
+textarea { resize: none; height: 120px; font-family: sans-serif; }
+.slider-container { margin: 40px 0; padding: 10px 0; }
+.slider { width: 100%; height: 14px; border-radius: 7px; outline: none; -webkit-appearance: none; background: #d1d5db; cursor: pointer; }
+.slider.physical { background: linear-gradient(90deg, #86efac 0%, #d1d5db 0%); }
+.slider.mental { background: linear-gradient(90deg, #fca5a5 0%, #d1d5db 0%); }
+.slider::-webkit-slider-track { height: 14px; border-radius: 7px; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 48px; height: 48px; background: white; border: 5px solid #86efac; border-radius: 50%; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.15s ease; }
+.slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+.slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.15); }
+.slider::-moz-range-track { height: 14px; border-radius: 7px; background: #d1d5db; border: none; }
+.slider::-moz-range-thumb { width: 48px; height: 48px; background: white; border: 5px solid #86efac; border-radius: 50%; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.15s ease; }
+.slider::-moz-range-thumb:hover { transform: scale(1.1); }
+.slider::-moz-range-thumb:active { cursor: grabbing; transform: scale(1.15); }
+.slider.mental::-webkit-slider-thumb { border-color: #fca5a5; }
+.slider.mental::-moz-range-thumb { border-color: #fca5a5; }
+.btn { width: 100%; padding: 22px; font-size: 18px; font-weight: bold; color: white; border: none; border-radius: 12px; cursor: pointer; margin-top: 15px; }
+.btn:hover { opacity: 0.9; transform: scale(1.02); transition: all 0.2s; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%); }
+.btn-success { background: linear-gradient(135deg, #34d399 0%, #14b8a6 100%); }
+.btn-info { background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); }
+.btn-cancel { background: #6b7280; }
+.btn-edit { background: #3b82f6; padding: 10px 18px; font-size: 14px; display: inline-block; width: auto; margin: 0 5px; border-radius: 8px; }
+.record { background: #f9fafb; padding: 20px; margin: 15px 0; border-radius: 12px; border: 2px solid #e5e7eb; }
+.record:hover { border-color: #a78bfa; }
+.record-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; margin: 0 5px; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 16px 32px; border-radius: 12px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 90%; text-align: center; }
+.notification.error { background: #ef4444; }
+.notification.info { background: #3b82f6; }
+.hidden { display: none; }
+#chartCanvas { width: 100%; height: 400px; background: white; border-radius: 12px; display: block; }
+@media (max-width: 600px) {
+  .card { padding: 25px; }
+  .header h1 { font-size: 28px; }
+  #chartCanvas { height: 350px; }
+}
+</style>
 </head>
 <body>
 
-<div id="notification" class="hidden">✓ コピーしました！</div>
+<div id="notification" class="notification hidden"></div>
 
 <div class="container">
-    <div class="header">
-        <h1>My Balance Board</h1>
+  <div class="header">
+    <h1>My Balance Board</h1>
+    <p>あなたのバランスを見える化</p>
+  </div>
+
+  <div id="inputCard" class="card">
+    <label class="label" id="dateLabel">📅 記録する日付</label>
+    <input type="date" id="dateInput">
+
+    <div class="slider-container">
+      <label class="label">🧍 体の調子 <span id="physicalValue">5</span>/10</label>
+      <input type="range" min="1" max="10" value="5" class="slider physical" id="physicalSlider">
     </div>
 
-    <div class="card">
-        <label class="label">📅 日付</label>
-        <input type="date" id="dateInput">
-
-        <div class="slider-container">
-            <label class="label">🧍 体の調子: <span id="pVal">5</span>/10</label>
-            <input type="range" min="1" max="10" value="5" class="slider physical-slider" id="pSlider">
-        </div>
-
-        <div class="slider-container">
-            <label class="label">💗 心の調子: <span id="mVal">5</span>/10</label>
-            <input type="range" min="1" max="10" value="5" class="slider mental-slider" id="mSlider">
-        </div>
-
-        <label class="label">📝 メモ</label>
-        <textarea id="memoInput" placeholder="今の気持ちをメモ..."></textarea>
-
-        <button class="btn btn-primary" onclick="save()">✓ 記録する</button>
+    <div class="slider-container">
+      <label class="label">💗 心の調子 <span id="mentalValue">5</span>/10</label>
+      <input type="range" min="1" max="10" value="5" class="slider mental" id="mentalSlider">
     </div>
 
-    <div id="dataArea" class="hidden">
-        <div class="card">
-            <h2 class="label">📊 過去の推移</h2>
-            <canvas id="myChart"></canvas>
-            <button class="btn btn-copy" onclick="copyAnalysis()">📋 AI分析用に詳細コピー</button>
-        </div>
-        <div class="card">
-            <h2 class="label">📋 記録一覧</h2>
-            <div id="list"></div>
-        </div>
-    </div>
+    <label class="label">📝 今日のメモ</label>
+    <textarea id="memoInput" placeholder="気になったこと、感じたこと..."></textarea>
+
+    <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✓ 記録する</button>
+    <button class="btn btn-cancel" id="cancelBtn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
+  </div>
+
+  <div id="chartCard" class="card hidden">
+    <h2 style="margin-top:0; margin-bottom:10px; font-size:22px; color:#374151;">📊 過去7日間の推移</h2>
+    <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">グラフの棒をタップするとメモが表示されます</p>
+    <canvas id="chartCanvas"></canvas>
+  </div>
+
+  <div id="recordsCard" class="card hidden">
+    <h2 style="margin-top:0; margin-bottom:20px; font-size:22px; color:#374151;">📋 記録一覧</h2>
+    <div id="recordsList"></div>
+  </div>
+
+  <div id="exportCard" class="card hidden">
+    <h2 style="margin-top:0; margin-bottom:20px; font-size:22px; color:#374151;">📤 データを共有</h2>
+    <button class="btn btn-info" onclick="copyForAI()">📋 AI分析用にコピー</button>
+    <button class="btn btn-success" onclick="generateEmail()">📨 メール本文を作成</button>
+  </div>
+
+  <div class="card" style="text-align:center; padding:20px; background:transparent; box-shadow:none;">
+    <p style="color:#9ca3af; font-size:13px;">🔒 データは全てあなたのデバイスに安全に保存されます</p>
+  </div>
 </div>
 
 <script>
-let records = JSON.parse(localStorage.getItem('balanceRecords') || '[]');
+let records = [];
+let isEditing = false;
+let editingDate = null;
 
-function save() {
-    const data = {
-        date: document.getElementById('dateInput').value,
-        physical: parseInt(document.getElementById('pSlider').value),
-        mental: parseInt(document.getElementById('mSlider').value),
-        memo: document.getElementById('memoInput').value
-    };
-    records = records.filter(r => r.date !== data.date);
-    records.push(data);
-    records.sort((a, b) => new Date(a.date) - new Date(b.date));
-    localStorage.setItem('balanceRecords', JSON.stringify(records));
-    showNotif('記録しました！');
-    render();
+// スライダー誤操作防止用
+let sliderDragging = { physical: false, mental: false };
+let touchStart = { physical: null, mental: null };
+
+function init() {
+  const saved = localStorage.getItem('balanceRecords');
+  if (saved) records = JSON.parse(saved);
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').value = today;
+  document.getElementById('dateInput').max = today;
+  
+  setupSlider('physical');
+  setupSlider('mental');
+  
+  updateDisplay();
 }
 
-// みきやさんが希望した「詳細プロンプト」を生成する関数
-function copyAnalysis() {
-    if (records.length === 0) return;
-    
-    const dataText = records.slice(-7).map(r => 
-        `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}`
-    ).join('\n\n');
-
-    const prompt = `私は自分の状態を説明するのが苦手です。以下の記録を詳細に分析し、2つのセクションに分けて回答してください。
-
-【回答の構成】
-
-**セクション1: 私への寄り添いメッセージ**
-優しい口調で、私に向けて以下を伝えてください：
-- この期間の頑張りや変化への労いの言葉
-- 気づいたパターンや傾向についてのアドバイス
-- 今後気をつけるとよいこと
-
-**セクション2: 支援員さんへの共有用（必ず以下の形式で）**
-
-▼ここからコピー▼
-
-【バランス分析】
-体と心の数値の乖離、バランスの状態について
-
-【変化のパターン】
-数値の推移から見える傾向、波の特徴
-
-【注意すべき点】
-今後のリスクや気をつけるべきこと
-
-【支援員さんへ】
-面談で確認してほしいポイント、サポートのアドバイス
-
-▲ここまでコピー▲
-
-データ：
-${dataText}`;
-
-    navigator.clipboard.writeText(prompt).then(() => showNotif('✓ 詳細プロンプトをコピー！'));
+function setupSlider(type) {
+  const slider = document.getElementById(`${type}Slider`);
+  const valueSpan = document.getElementById(`${type}Value`);
+  
+  // 値の変更
+  slider.oninput = function() {
+    if (sliderDragging[type]) {
+      valueSpan.textContent = this.value;
+      updateSliderBackground(this, type);
+    }
+  };
+  
+  // マウス操作
+  slider.onmousedown = function() {
+    sliderDragging[type] = true;
+  };
+  
+  slider.onmouseup = function() {
+    sliderDragging[type] = false;
+  };
+  
+  // タッチ操作（誤操作防止）
+  slider.ontouchstart = function(e) {
+    const touch = e.touches[0];
+    touchStart[type] = { x: touch.clientX, y: touch.clientY };
+    sliderDragging[type] = false;
+  };
+  
+  slider.ontouchmove = function(e) {
+    if (touchStart[type]) {
+      const touch = e.touches[0];
+      const moveX = Math.abs(touch.clientX - touchStart[type].x);
+      const moveY = Math.abs(touch.clientY - touchStart[type].y);
+      
+      // 横移動が5px以上 かつ 縦移動より大きい場合のみドラッグ判定
+      if (moveX > 5 && moveX > moveY) {
+        sliderDragging[type] = true;
+      }
+    }
+  };
+  
+  slider.ontouchend = function() {
+    sliderDragging[type] = false;
+    touchStart[type] = null;
+  };
+  
+  updateSliderBackground(slider, type);
 }
 
-function render() {
-    if (records.length > 0) document.getElementById('dataArea').classList.remove('hidden');
-    const list = document.getElementById('list');
-    list.innerHTML = records.slice().reverse().map(r => `
-        <div class="record-item">
-            <strong>${r.date}</strong> | 体:${r.physical} 心:${r.mental}<br>
-            <small>${r.memo}</small>
-        </div>
-    `).join('');
-    drawChart();
+function updateSliderBackground(slider, type) {
+  const value = slider.value;
+  const percent = (value - 1) / 9 * 100;
+  const color = type === 'physical' ? '#86efac' : '#fca5a5';
+  slider.style.background = `linear-gradient(90deg, ${color} ${percent}%, #d1d5db ${percent}%)`;
+}
+
+function saveRecord() {
+  const date = document.getElementById('dateInput').value;
+  const physical = parseInt(document.getElementById('physicalSlider').value);
+  const mental = parseInt(document.getElementById('mentalSlider').value);
+  const memo = document.getElementById('memoInput').value.trim();
+  
+  if (isEditing && editingDate !== date) {
+    records = records.filter(r => r.date !== editingDate && r.date !== date);
+  } else {
+    records = records.filter(r => r.date !== date);
+  }
+  
+  records.push({ date, physical, mental, memo });
+  records.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  localStorage.setItem('balanceRecords', JSON.stringify(records));
+  showNotification(isEditing ? '記録を更新しました！' : '記録しました！');
+  
+  isEditing = false;
+  editingDate = null;
+  resetForm();
+  updateDisplay();
+}
+
+function editRecord(date) {
+  const record = records.find(r => r.date === date);
+  if (!record) return;
+  
+  isEditing = true;
+  editingDate = date;
+  
+  document.getElementById('dateInput').value = record.date;
+  document.getElementById('physicalSlider').value = record.physical;
+  document.getElementById('mentalSlider').value = record.mental;
+  document.getElementById('memoInput').value = record.memo;
+  
+  document.getElementById('physicalValue').textContent = record.physical;
+  document.getElementById('mentalValue').textContent = record.mental;
+  
+  updateSliderBackground(document.getElementById('physicalSlider'), 'physical');
+  updateSliderBackground(document.getElementById('mentalSlider'), 'mental');
+  
+  document.getElementById('inputCard').classList.add('editing');
+  document.getElementById('dateLabel').textContent = '📅 変更後の日付';
+  document.getElementById('saveBtn').textContent = '✓ 更新する';
+  document.getElementById('saveBtn').className = 'btn';
+  document.getElementById('saveBtn').style.background = 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)';
+  document.getElementById('cancelBtn').style.display = 'block';
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showNotification(`${date}のデータを編集中`, 'info');
+}
+
+function cancelEdit() {
+  isEditing = false;
+  editingDate = null;
+  resetForm();
+  showNotification('編集をキャンセルしました', 'info');
+}
+
+function resetForm() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').value = today;
+  document.getElementById('physicalSlider').value = 5;
+  document.getElementById('mentalSlider').value = 5;
+  document.getElementById('memoInput').value = '';
+  document.getElementById('physicalValue').textContent = '5';
+  document.getElementById('mentalValue').textContent = '5';
+  
+  updateSliderBackground(document.getElementById('physicalSlider'), 'physical');
+  updateSliderBackground(document.getElementById('mentalSlider'), 'mental');
+  
+  document.getElementById('inputCard').classList.remove('editing');
+  document.getElementById('dateLabel').textContent = '📅 記録する日付';
+  document.getElementById('saveBtn').textContent = '✓ 記録する';
+  document.getElementById('saveBtn').className = 'btn btn-primary';
+  document.getElementById('saveBtn').style.background = '';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+function updateDisplay() {
+  if (records.length === 0) {
+    document.getElementById('chartCard').classList.add('hidden');
+    document.getElementById('recordsCard').classList.add('hidden');
+    document.getElementById('exportCard').classList.add('hidden');
+    return;
+  }
+  
+  document.getElementById('chartCard').classList.remove('hidden');
+  document.getElementById('recordsCard').classList.remove('hidden');
+  document.getElementById('exportCard').classList.remove('hidden');
+  
+  drawChart();
+  displayRecords();
 }
 
 function drawChart() {
-    const canvas = document.getElementById('myChart');
-    const ctx = canvas.getContext('2d');
-    const last7 = records.slice(-7);
-    canvas.width = canvas.offsetWidth;
-    canvas.height = 200;
+  const canvas = document.getElementById('chartCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = 400 * dpr;
+  ctx.scale(dpr, dpr);
+  
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const last7 = sorted.slice(0, 7).reverse();
+  
+  if (last7.length === 0) return;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  const padding = 50;
+  const chartWidth = canvas.offsetWidth - padding * 2;
+  const chartHeight = 400 - padding * 2;
+  const barSpacing = chartWidth / (last7.length * 2.5 + 1);
+  const barWidth = barSpacing * 0.9;
+  
+  // グリッド線
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 10; i += 2) {
+    const y = padding + chartHeight - (i / 10 * chartHeight);
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(canvas.offsetWidth - padding, y);
+    ctx.stroke();
+  }
+  
+  // Y軸ラベル
+  ctx.fillStyle = '#6b7280';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 10; i += 2) {
+    const y = padding + chartHeight - (i / 10 * chartHeight);
+    ctx.fillText(i, padding - 15, y + 5);
+  }
+  
+  // 棒グラフ
+  last7.forEach((record, index) => {
+    const x = padding + (index * 2.5 + 0.5) * barSpacing;
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const step = canvas.width / 8;
+    // 体（緑）
+    const physicalHeight = (record.physical / 10) * chartHeight;
+    ctx.fillStyle = '#86efac';
+    ctx.fillRect(x, padding + chartHeight - physicalHeight, barWidth, physicalHeight);
     
-    last7.forEach((r, i) => {
-        const x = (i + 1) * step;
-        // 体の棒 (緑)
-        ctx.fillStyle = '#86efac';
-        ctx.fillRect(x - 10, 180, 8, -(r.physical * 15));
-        // 心の棒 (赤)
-        ctx.fillStyle = '#fca5a5';
-        ctx.fillRect(x + 2, 180, 8, -(r.mental * 15));
-        
-        ctx.fillStyle = '#6b7280';
-        ctx.font = '10px Arial';
-        ctx.fillText(r.date.split('-')[2], x - 5, 195);
-    });
+    // 心（赤）
+    const mentalHeight = (record.mental / 10) * chartHeight;
+    ctx.fillStyle = '#fca5a5';
+    ctx.fillRect(x + barWidth + 5, padding + chartHeight - mentalHeight, barWidth, mentalHeight);
+    
+    // 数値ラベル
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(record.physical, x + barWidth / 2, padding + chartHeight - physicalHeight - 5);
+    ctx.fillText(record.mental, x + barWidth + 5 + barWidth / 2, padding + chartHeight - mentalHeight - 5);
+    
+    // 日付ラベル
+    const date = new Date(record.date);
+    const label = `${date.getMonth() + 1}/${date.getDate()}`;
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(label, x + barWidth + 2.5, canvas.offsetHeight / dpr - padding + 25);
+  });
+  
+  // 凡例
+  ctx.fillStyle = '#86efac';
+  ctx.fillRect(padding, 15, 25, 25);
+  ctx.fillStyle = '#374151';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('体', padding + 35, 33);
+  
+  ctx.fillStyle = '#fca5a5';
+  ctx.fillRect(padding + 100, 15, 25, 25);
+  ctx.fillStyle = '#374151';
+  ctx.fillText('心', padding + 135, 33);
 }
 
-function showNotif(msg) {
-    const n = document.getElementById('notification');
-    n.textContent = msg;
-    n.classList.remove('hidden');
-    setTimeout(() => n.classList.add('hidden'), 3000);
+function displayRecords() {
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  let html = '';
+  sorted.forEach(r => {
+    html += `<div class="record">
+      <div class="record-header">
+        <div>
+          <strong style="font-size:16px;">${r.date}</strong>
+          <span class="badge badge-green">体 ${r.physical}</span>
+          <span class="badge badge-red">心 ${r.mental}</span>
+        </div>
+        <button class="btn btn-edit" onclick="editRecord('${r.date}')">✏️ 編集</button>
+      </div>
+      ${r.memo ? `<p style="margin-top:12px; color:#374151; line-height:1.6;">${r.memo}</p>` : ''}
+    </div>`;
+  });
+  document.getElementById('recordsList').innerHTML = html;
 }
 
-document.getElementById('pSlider').oninput = e => document.getElementById('pVal').textContent = e.target.value;
-document.getElementById('mSlider').oninput = e => document.getElementById('mVal').textContent = e.target.value;
-document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
-render();
+function showNotification(msg, type = 'success') {
+  const notif = document.getElementById('notification');
+  notif.textContent = msg;
+  notif.className = 'notification';
+  if (type === 'error') notif.classList.add('error');
+  if (type === 'info') notif.classList.add('info');
+  setTimeout(() => notif.classList.add('hidden'), 3000);
+}
+
+function copyForAI() {
+  if (records.length === 0) {
+    showNotification('記録がありません', 'error');
+    return;
+  }
+  
+  let text = '私は自分の状態を説明するのが苦手です。以下の記録を分析してください。\n\n';
+  text += '▼ここからコピー▼\n\n';
+  records.forEach(r => {
+    text += `日付: ${r.date}\n体: ${r.physical}/10\n心: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n\n`;
+  });
+  text += '▲ここまでコピー▲';
+  
+  navigator.clipboard.writeText(text).then(() => {
+    showNotification(`✓ ${records.length}日分コピーしました！`);
+  }).catch(() => {
+    alert(text);
+  });
+}
+
+function generateEmail() {
+  if (records.length === 0) {
+    showNotification('記録がありません', 'error');
+    return;
+  }
+  
+  let data = '';
+  records.forEach(r => {
+    data += `日付: ${r.date}\n体: ${r.physical}/10\n心: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n\n`;
+  });
+  
+  const email = `件名: 私の体調レポート
+
+本文:
+
+支援員様
+
+お疲れ様です。体調記録を送付します。
+
+【期間】全${records.length}日分
+
+【データ】
+${data}
+
+よろしくお願いいたします。`;
+  
+  navigator.clipboard.writeText(email).then(() => {
+    showNotification('✓ メール本文をコピーしました！');
+  }).catch(() => {
+    alert(email);
+  });
+}
+
+window.addEventListener('resize', () => {
+  if (records.length > 0) drawChart();
+});
+
+init();
 </script>
+
 </body>
 </html>
