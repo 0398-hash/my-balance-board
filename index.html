@@ -12,25 +12,31 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#a78bfa">
 
-<!-- アイコン設定（絵文字をSVG化してbase64エンコード） -->
+<!-- アイコン設定 -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚖️</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⚖️</text></svg>">
 
 <style>
 * { box-sizing: border-box; }
-body { margin: 0; font-family: sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%); min-height: 100vh; padding: 20px; }
+body { margin: 0; font-family: sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%); min-height: 100vh; padding: 20px; padding-bottom: 100px; }
 .container { max-width: 900px; margin: 0 auto; }
 .header { text-align: center; margin-bottom: 40px; }
 .header h1 { font-size: 36px; color: #374151; margin: 0; }
 .header p { color: #6b7280; font-size: 14px; margin-top: 8px; }
+.nav-tabs { display: flex; gap: 10px; margin-bottom: 30px; background: white; padding: 10px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.nav-tab { flex: 1; padding: 12px; background: transparent; border: none; border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer; color: #6b7280; transition: all 0.2s; }
+.nav-tab.active { background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%); color: white; }
+.nav-tab:hover:not(.active) { background: #f3f4f6; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 .card { background: white; border-radius: 24px; padding: 40px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .card.editing { background: #fef3c7; border: 4px solid #fbbf24; }
 .edit-banner { background: #fcd34d; border: 3px solid #f59e0b; border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
 .edit-banner strong { color: #92400e; font-size: 16px; }
 .edit-banner button { background: white; color: #f59e0b; border: 2px solid #f59e0b; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 .label { font-size: 18px; font-weight: bold; color: #374151; margin-bottom: 15px; display: block; }
-input[type="date"], textarea { width: 100%; padding: 16px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 12px; }
-textarea { resize: none; height: 120px; font-family: sans-serif; }
+input[type="date"], input[type="text"], textarea { width: 100%; padding: 16px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 12px; }
+textarea { resize: none; font-family: sans-serif; }
 .slider-container { margin: 40px 0; padding: 10px 0; }
 .slider { width: 100%; height: 14px; border-radius: 7px; outline: none; -webkit-appearance: none; background: #d1d5db; cursor: pointer; }
 .slider::-webkit-slider-track { height: 14px; border-radius: 7px; }
@@ -50,10 +56,13 @@ textarea { resize: none; height: 120px; font-family: sans-serif; }
 .btn-info { background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); }
 .btn-cancel { background: #6b7280; }
 .btn-small { padding: 8px 14px; font-size: 13px; display: inline-block; width: auto; margin: 0 4px; border-radius: 8px; }
-.record { background: #f9fafb; padding: 20px; margin: 15px 0; border-radius: 12px; border: 2px solid #e5e7eb; }
+.record { background: #f9fafb; padding: 16px; margin: 10px 0; border-radius: 12px; border: 2px solid #e5e7eb; cursor: pointer; transition: all 0.2s; }
 .record:hover { border-color: #a78bfa; }
+.record.expanded { background: white; border-color: #a78bfa; }
 .record-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 .record-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.record-detail { margin-top: 15px; padding-top: 15px; border-top: 2px solid #e5e7eb; display: none; }
+.record.expanded .record-detail { display: block; }
 .badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; }
 .badge-green { background: #d1fae5; color: #065f46; }
 .badge-red { background: #fee2e2; color: #991b1b; }
@@ -72,18 +81,30 @@ textarea { resize: none; height: 120px; font-family: sans-serif; }
 #chartCanvas { width: 100%; height: 450px; background: white; border-radius: 12px; display: block; }
 .data-management { display: flex; gap: 10px; margin-top: 15px; }
 .data-management button { flex: 1; }
+.floating-btn { position: fixed; bottom: 20px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); color: white; border: none; font-size: 24px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; transition: all 0.2s; }
+.floating-btn:hover { transform: scale(1.1); }
+.floating-btn:active { transform: scale(0.95); }
+.profile-field { margin-bottom: 25px; }
+.profile-field label { display: block; font-size: 16px; font-weight: bold; color: #374151; margin-bottom: 8px; }
+.profile-field input, .profile-field textarea { width: 100%; padding: 14px; font-size: 15px; border: 2px solid #e5e7eb; border-radius: 10px; }
+.profile-field textarea { height: 100px; resize: vertical; }
+.profile-info-box { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+.profile-info-box h4 { margin: 0 0 10px 0; color: #1e40af; font-size: 15px; }
+.profile-info-box p { margin: 5px 0; font-size: 14px; color: #1e40af; }
 @media (max-width: 600px) {
   .card { padding: 25px; }
   .header h1 { font-size: 28px; }
   #chartCanvas { height: 400px; }
   .period-buttons { flex-direction: column; }
   .period-btn { width: 100%; }
+  .floating-btn { bottom: 15px; right: 15px; width: 56px; height: 56px; font-size: 20px; }
 }
 </style>
 </head>
 <body>
 
 <div id="notification" class="notification hidden"></div>
+<button id="floatingAIBtn" class="floating-btn hidden" onclick="scrollToAI()" title="AI分析">🤖</button>
 
 <div class="container">
   <div class="header">
@@ -91,96 +112,139 @@ textarea { resize: none; height: 120px; font-family: sans-serif; }
     <p>あなたのバランスを見える化</p>
   </div>
 
-  <div id="inputCard" class="card">
-    <div id="editBanner" class="edit-banner hidden">
-      <div>
-        <strong>✏️ 編集モード</strong>
-        <p style="margin:5px 0 0 0; font-size:13px; color:#92400e;" id="editingDateText"></p>
-      </div>
-      <button onclick="cancelEdit()">キャンセル</button>
-    </div>
-
-    <label class="label" id="dateLabel">📅 記録する日付</label>
-    <input type="date" id="dateInput">
-
-    <div class="slider-container">
-      <label class="label">🧍 体の調子 <span id="physicalValue">5</span>/10</label>
-      <input type="range" min="1" max="10" value="5" class="slider physical" id="physicalSlider">
-    </div>
-
-    <div class="slider-container">
-      <label class="label">💗 心の調子 <span id="mentalValue">5</span>/10</label>
-      <input type="range" min="1" max="10" value="5" class="slider mental" id="mentalSlider">
-    </div>
-
-    <label class="label">📝 今日のメモ</label>
-    <textarea id="memoInput" placeholder="気になったこと、感じたこと..."></textarea>
-
-    <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✓ 記録する</button>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('record')">📝 記録</button>
+    <button class="nav-tab" onclick="switchTab('profile')">👤 プロフィール</button>
+    <button class="nav-tab" onclick="switchTab('export')">📤 共有</button>
   </div>
 
-  <div id="chartCard" class="card hidden">
-    <h2 style="margin-top:0; margin-bottom:10px; font-size:22px; color:#374151;">📊 過去7日間の推移</h2>
-    <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">体と心のバランスを確認できます</p>
-    <canvas id="chartCanvas"></canvas>
-  </div>
-
-  <div id="recordsCard" class="card hidden">
-    <h2 style="margin-top:0; margin-bottom:20px; font-size:22px; color:#374151;">📋 記録一覧</h2>
-    <div id="recordsList"></div>
-  </div>
-
-  <div id="exportCard" class="card hidden">
-    <h2 style="margin-top:0; margin-bottom:20px; font-size:22px; color:#374151;">📤 データを共有</h2>
-    
-    <div class="period-selector">
-      <h3 style="margin:0 0 5px 0; font-size:18px; color:#374151;">📆 出力期間を選択</h3>
-      <p style="margin:0 0 10px 0; font-size:13px; color:#6b7280;">選択期間: <strong id="periodCount">0日分</strong></p>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+  <!-- 記録タブ -->
+  <div id="recordTab" class="tab-content active">
+    <div id="inputCard" class="card">
+      <div id="editBanner" class="edit-banner hidden">
         <div>
-          <label style="font-size:13px; font-weight:bold; color:#374151; display:block; margin-bottom:5px;">開始日</label>
-          <input type="date" id="startDate" onchange="updatePeriodCount()" style="padding:10px; font-size:14px;">
+          <strong>✏️ 編集モード</strong>
+          <p style="margin:5px 0 0 0; font-size:13px; color:#92400e;" id="editingDateText"></p>
         </div>
-        <div>
-          <label style="font-size:13px; font-weight:bold; color:#374151; display:block; margin-bottom:5px;">終了日</label>
-          <input type="date" id="endDate" onchange="updatePeriodCount()" style="padding:10px; font-size:14px;">
+        <button onclick="cancelEdit()">キャンセル</button>
+      </div>
+
+      <label class="label" id="dateLabel">📅 記録する日付</label>
+      <input type="date" id="dateInput">
+
+      <div class="slider-container">
+        <label class="label">🧍 体の調子 <span id="physicalValue">5</span>/10</label>
+        <input type="range" min="1" max="10" value="5" class="slider physical" id="physicalSlider">
+      </div>
+
+      <div class="slider-container">
+        <label class="label">💗 心の調子 <span id="mentalValue">5</span>/10</label>
+        <input type="range" min="1" max="10" value="5" class="slider mental" id="mentalSlider">
+      </div>
+
+      <label class="label">📝 今日のメモ</label>
+      <textarea id="memoInput" placeholder="気になったこと、感じたこと..." style="height:120px;"></textarea>
+
+      <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✓ 記録する</button>
+    </div>
+
+    <div id="chartCard" class="card hidden">
+      <h2 style="margin-top:0; margin-bottom:10px; font-size:22px; color:#374151;">📊 過去7日間の推移</h2>
+      <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">体と心のバランスを確認できます</p>
+      <canvas id="chartCanvas"></canvas>
+    </div>
+
+    <div id="recordsCard" class="card hidden">
+      <h2 style="margin-top:0; margin-bottom:20px; font-size:22px; color:#374151;">📋 記録一覧</h2>
+      <p style="color:#6b7280; font-size:13px; margin-bottom:15px;">各記録をタップすると詳細が表示されます</p>
+      <div id="recordsList"></div>
+    </div>
+  </div>
+
+  <!-- プロフィールタブ -->
+  <div id="profileTab" class="tab-content">
+    <div class="card">
+      <h2 style="margin-top:0; margin-bottom:10px; font-size:22px; color:#374151;">👤 プロフィール設定</h2>
+      <p style="color:#6b7280; font-size:14px; margin-bottom:30px;">AI分析をより的確にするため、あなたの情報を入力してください</p>
+
+      <div class="profile-field">
+        <label>🏥 診断名</label>
+        <input type="text" id="diagnosisInput" placeholder="例：知的障害、ADHD、ASDなど">
+      </div>
+
+      <div class="profile-field">
+        <label>✨ 自分の特性・困りごと</label>
+        <textarea id="characteristicsInput" placeholder="例：マルチタスクが苦手、急な変更に弱い、音に敏感など"></textarea>
+      </div>
+
+      <div class="profile-field">
+        <label>💊 現在の服薬内容</label>
+        <textarea id="medicationInput" placeholder="例：○○（朝1錠、夜1錠）、△△（頓服）など"></textarea>
+      </div>
+
+      <button class="btn btn-success" onclick="saveProfile()">✓ プロフィールを保存</button>
+    </div>
+  </div>
+
+  <!-- 共有タブ -->
+  <div id="exportTab" class="tab-content">
+    <div class="card" id="exportCard">
+      <h2 style="margin-top:0; margin-bottom:20px; font-size:22px; color:#374151;">📤 データを共有</h2>
+      
+      <div id="profileInfoBox" class="profile-info-box hidden">
+        <h4>📋 プロフィール情報がAI分析に含まれます</h4>
+        <p id="profileInfoText"></p>
+      </div>
+
+      <div class="period-selector">
+        <h3 style="margin:0 0 5px 0; font-size:18px; color:#374151;">📆 出力期間を選択</h3>
+        <p style="margin:0 0 10px 0; font-size:13px; color:#6b7280;">選択期間: <strong id="periodCount">0日分</strong></p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+          <div>
+            <label style="font-size:13px; font-weight:bold; color:#374151; display:block; margin-bottom:5px;">開始日</label>
+            <input type="date" id="startDate" onchange="updatePeriodCount()" style="padding:10px; font-size:14px;">
+          </div>
+          <div>
+            <label style="font-size:13px; font-weight:bold; color:#374151; display:block; margin-bottom:5px;">終了日</label>
+            <input type="date" id="endDate" onchange="updatePeriodCount()" style="padding:10px; font-size:14px;">
+          </div>
+        </div>
+        <div class="period-buttons">
+          <button class="period-btn" onclick="setPeriod(7)">直近1週間</button>
+          <button class="period-btn active" onclick="setPeriod(30)">直近1ヶ月</button>
+          <button class="period-btn" onclick="setPeriod(90)">直近3ヶ月</button>
         </div>
       </div>
-      <div class="period-buttons">
-        <button class="period-btn" onclick="setPeriod(7)">直近1週間</button>
-        <button class="period-btn active" onclick="setPeriod(30)">直近1ヶ月</button>
-        <button class="period-btn" onclick="setPeriod(90)">直近3ヶ月</button>
+
+      <button class="btn btn-info" onclick="showAIPrompt()">📋 AI分析用プロンプトを表示</button>
+      
+      <div id="aiPromptPreview" class="preview-area hidden">
+        <p style="margin:0 0 10px 0; font-size:14px; font-weight:bold; color:#92400e;">💡 以下の内容がコピーされます：</p>
+        <textarea id="aiPromptText" readonly style="height:250px;" onclick="this.select()"></textarea>
+        <button class="btn btn-info" onclick="copyAIPrompt()">📋 コピーする</button>
       </div>
-    </div>
 
-    <button class="btn btn-info" onclick="showAIPrompt()">📋 AI分析用プロンプトを表示</button>
-    
-    <div id="aiPromptPreview" class="preview-area hidden">
-      <p style="margin:0 0 10px 0; font-size:14px; font-weight:bold; color:#92400e;">💡 以下の内容がコピーされます：</p>
-      <textarea id="aiPromptText" readonly style="height:200px;" onclick="this.select()"></textarea>
-      <button class="btn btn-info" onclick="copyAIPrompt()">📋 コピーする</button>
-    </div>
+      <div class="ai-input-area">
+        <h3 style="margin:0 0 10px 0; font-size:18px; color:#1e40af;">🤖 AI分析結果を貼り付け</h3>
+        <p style="margin:0 0 10px 0; font-size:13px; color:#1e40af;">上の「AI分析用プロンプト」でClaudeに分析してもらった結果を、ここに貼り付けてください。メール本文に自動で含まれます。</p>
+        <textarea id="aiResultInput" placeholder="Claudeの分析結果をここに貼り付けてください..." style="height:150px;"></textarea>
+        <p id="aiResultStatus" style="margin:10px 0 0 0; font-size:13px; font-weight:bold; color:#1e40af;" class="hidden">✓ AI分析結果が入力されています</p>
+      </div>
 
-    <div class="ai-input-area">
-      <h3 style="margin:0 0 10px 0; font-size:18px; color:#1e40af;">🤖 AI分析結果を貼り付け</h3>
-      <p style="margin:0 0 10px 0; font-size:13px; color:#1e40af;">上の「AI分析用プロンプト」でClaudeに分析してもらった結果を、ここに貼り付けてください。メール本文に自動で含まれます。</p>
-      <textarea id="aiResultInput" placeholder="Claudeの分析結果をここに貼り付けてください..." style="height:150px;"></textarea>
-      <p id="aiResultStatus" style="margin:10px 0 0 0; font-size:13px; font-weight:bold; color:#1e40af;" class="hidden">✓ AI分析結果が入力されています</p>
-    </div>
+      <button class="btn btn-success" onclick="generateEmail()">📨 メール本文を作成</button>
 
-    <button class="btn btn-success" onclick="generateEmail()">📨 メール本文を作成</button>
+      <div id="emailPreview" class="preview-area hidden" style="background:#d1fae5; border-color:#34d399;">
+        <p style="margin:0 0 10px 0; font-size:14px; font-weight:bold; color:#065f46;">📧 メール本文：</p>
+        <textarea id="emailText" readonly style="height:300px;" onclick="this.select()"></textarea>
+        <button class="btn btn-success" onclick="copyEmail()">📋 メール本文をコピー</button>
+      </div>
 
-    <div id="emailPreview" class="preview-area hidden" style="background:#d1fae5; border-color:#34d399;">
-      <p style="margin:0 0 10px 0; font-size:14px; font-weight:bold; color:#065f46;">📧 メール本文：</p>
-      <textarea id="emailText" readonly style="height:300px;" onclick="this.select()"></textarea>
-      <button class="btn btn-success" onclick="copyEmail()">📋 メール本文をコピー</button>
-    </div>
-
-    <div style="margin-top:30px; padding-top:30px; border-top:2px solid #e5e7eb;">
-      <h3 style="margin:0 0 15px 0; font-size:18px; color:#374151;">💾 データ管理</h3>
-      <div class="data-management">
-        <button class="btn btn-info" onclick="exportData()">📤 データ書き出し</button>
-        <button class="btn btn-info" onclick="importData()">📥 データ読み込み</button>
+      <div style="margin-top:30px; padding-top:30px; border-top:2px solid #e5e7eb;">
+        <h3 style="margin:0 0 15px 0; font-size:18px; color:#374151;">💾 データ管理</h3>
+        <div class="data-management">
+          <button class="btn btn-info" onclick="exportData()">📤 データ書き出し</button>
+          <button class="btn btn-info" onclick="importData()">📥 データ読み込み</button>
+        </div>
       </div>
     </div>
   </div>
@@ -192,14 +256,24 @@ textarea { resize: none; height: 120px; font-family: sans-serif; }
 
 <script>
 let records = [];
+let profile = { diagnosis: '', characteristics: '', medication: '' };
 let isEditing = false;
 let editingDate = null;
 let sliderDragging = { physical: false, mental: false };
 let touchStart = { physical: null, mental: null };
+let currentTab = 'record';
 
 function init() {
   const saved = localStorage.getItem('balanceRecords');
   if (saved) records = JSON.parse(saved);
+  
+  const savedProfile = localStorage.getItem('balanceProfile');
+  if (savedProfile) {
+    profile = JSON.parse(savedProfile);
+    document.getElementById('diagnosisInput').value = profile.diagnosis || '';
+    document.getElementById('characteristicsInput').value = profile.characteristics || '';
+    document.getElementById('medicationInput').value = profile.medication || '';
+  }
   
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('dateInput').value = today;
@@ -220,6 +294,40 @@ function init() {
   
   updatePeriodCount();
   updateDisplay();
+  updateProfileInfo();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  
+  if (tab === 'record') {
+    document.querySelectorAll('.nav-tab')[0].classList.add('active');
+    document.getElementById('recordTab').classList.add('active');
+  } else if (tab === 'profile') {
+    document.querySelectorAll('.nav-tab')[1].classList.add('active');
+    document.getElementById('profileTab').classList.add('active');
+  } else if (tab === 'export') {
+    document.querySelectorAll('.nav-tab')[2].classList.add('active');
+    document.getElementById('exportTab').classList.add('active');
+  }
+  
+  updateFloatingButton();
+}
+
+function updateFloatingButton() {
+  const btn = document.getElementById('floatingAIBtn');
+  if (currentTab === 'record' && records.length > 0) {
+    btn.classList.remove('hidden');
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+function scrollToAI() {
+  switchTab('export');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function setupSlider(type) {
@@ -266,6 +374,35 @@ function updateSliderBackground(slider, type) {
   slider.style.background = `linear-gradient(90deg, ${color} ${percent}%, #d1d5db ${percent}%)`;
 }
 
+function saveProfile() {
+  profile = {
+    diagnosis: document.getElementById('diagnosisInput').value.trim(),
+    characteristics: document.getElementById('characteristicsInput').value.trim(),
+    medication: document.getElementById('medicationInput').value.trim()
+  };
+  
+  localStorage.setItem('balanceProfile', JSON.stringify(profile));
+  showNotification('✓ プロフィールを保存しました！');
+  updateProfileInfo();
+}
+
+function updateProfileInfo() {
+  const hasProfile = profile.diagnosis || profile.characteristics || profile.medication;
+  const box = document.getElementById('profileInfoBox');
+  
+  if (hasProfile) {
+    let info = [];
+    if (profile.diagnosis) info.push(`診断: ${profile.diagnosis}`);
+    if (profile.characteristics) info.push(`特性: ${profile.characteristics}`);
+    if (profile.medication) info.push(`服薬: ${profile.medication}`);
+    
+    document.getElementById('profileInfoText').textContent = info.join(' / ');
+    box.classList.remove('hidden');
+  } else {
+    box.classList.add('hidden');
+  }
+}
+
 function saveRecord() {
   const date = document.getElementById('dateInput').value;
   const physical = parseInt(document.getElementById('physicalSlider').value);
@@ -297,24 +434,29 @@ function editRecord(date) {
   isEditing = true;
   editingDate = date;
   
-  document.getElementById('dateInput').value = record.date;
-  document.getElementById('physicalSlider').value = record.physical;
-  document.getElementById('mentalSlider').value = record.mental;
-  document.getElementById('memoInput').value = record.memo;
-  document.getElementById('physicalValue').textContent = record.physical;
-  document.getElementById('mentalValue').textContent = record.mental;
+  switchTab('record');
   
-  updateSliderBackground(document.getElementById('physicalSlider'), 'physical');
-  updateSliderBackground(document.getElementById('mentalSlider'), 'mental');
+  setTimeout(() => {
+    document.getElementById('dateInput').value = record.date;
+    document.getElementById('physicalSlider').value = record.physical;
+    document.getElementById('mentalSlider').value = record.mental;
+    document.getElementById('memoInput').value = record.memo;
+    document.getElementById('physicalValue').textContent = record.physical;
+    document.getElementById('mentalValue').textContent = record.mental;
+    
+    updateSliderBackground(document.getElementById('physicalSlider'), 'physical');
+    updateSliderBackground(document.getElementById('mentalSlider'), 'mental');
+    
+    document.getElementById('inputCard').classList.add('editing');
+    document.getElementById('editBanner').classList.remove('hidden');
+    document.getElementById('editingDateText').textContent = `${date}のデータを編集中です`;
+    document.getElementById('dateLabel').textContent = '📅 変更後の日付';
+    document.getElementById('saveBtn').textContent = '✓ 更新する';
+    document.getElementById('saveBtn').className = 'btn btn-warning';
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   
-  document.getElementById('inputCard').classList.add('editing');
-  document.getElementById('editBanner').classList.remove('hidden');
-  document.getElementById('editingDateText').textContent = `${date}のデータを編集中です`;
-  document.getElementById('dateLabel').textContent = '📅 変更後の日付';
-  document.getElementById('saveBtn').textContent = '✓ 更新する';
-  document.getElementById('saveBtn').className = 'btn btn-warning';
-  
-  window.scrollTo({ top: 0, behavior: 'smooth' });
   showNotification(`${date}のデータを編集中`, 'info');
 }
 
@@ -344,17 +486,23 @@ function resetForm() {
   document.getElementById('saveBtn').className = 'btn btn-primary';
 }
 
+function toggleRecord(index) {
+  const record = document.getElementById(`record-${index}`);
+  record.classList.toggle('expanded');
+}
+
 function updateDisplay() {
   const hasRecords = records.length > 0;
   document.getElementById('chartCard').classList.toggle('hidden', !hasRecords);
   document.getElementById('recordsCard').classList.toggle('hidden', !hasRecords);
-  document.getElementById('exportCard').classList.toggle('hidden', !hasRecords);
   
   if (hasRecords) {
     drawChart();
     displayRecords();
     updatePeriodCount();
   }
+  
+  updateFloatingButton();
 }
 
 function drawChart() {
@@ -381,7 +529,6 @@ function drawChart() {
   const barWidth = barSpacing * 0.9;
   const cornerRadius = 8;
   
-  // グリッド線
   ctx.strokeStyle = '#e5e7eb';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 10; i += 2) {
@@ -392,7 +539,6 @@ function drawChart() {
     ctx.stroke();
   }
   
-  // Y軸ラベル
   ctx.fillStyle = '#6b7280';
   ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'right';
@@ -401,7 +547,6 @@ function drawChart() {
     ctx.fillText(i, padding - 15, y + 5);
   }
   
-  // X軸の線
   ctx.strokeStyle = '#9ca3af';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -409,7 +554,6 @@ function drawChart() {
   ctx.lineTo(canvas.offsetWidth - padding, padding + chartHeight);
   ctx.stroke();
   
-  // 角丸の棒グラフを描画する関数
   function drawRoundedBar(x, y, width, height, radius, color) {
     if (height < radius) radius = height;
     ctx.fillStyle = color;
@@ -425,20 +569,16 @@ function drawChart() {
     ctx.fill();
   }
   
-  // 棒グラフとX軸ラベル
   last7.forEach((record, index) => {
     const x = padding + (index * 2.5 + 0.5) * barSpacing;
     const centerX = x + barWidth + 2.5;
     
-    // 体（緑・角丸）
     const physicalHeight = (record.physical / 10) * chartHeight;
     drawRoundedBar(x, padding + chartHeight - physicalHeight, barWidth, physicalHeight, cornerRadius, '#86efac');
     
-    // 心（赤・角丸）
     const mentalHeight = (record.mental / 10) * chartHeight;
     drawRoundedBar(x + barWidth + 5, padding + chartHeight - mentalHeight, barWidth, mentalHeight, cornerRadius, '#fca5a5');
     
-    // X軸ラベル（日付）- グラフの下に配置
     const date = new Date(record.date);
     const label = `${date.getMonth() + 1}/${date.getDate()}`;
     ctx.fillStyle = '#374151';
@@ -447,7 +587,6 @@ function drawChart() {
     ctx.fillText(label, centerX, padding + chartHeight + 30);
   });
   
-  // 凡例
   ctx.fillStyle = '#86efac';
   ctx.fillRect(padding, 15, 25, 25);
   ctx.fillStyle = '#374151';
@@ -464,17 +603,19 @@ function drawChart() {
 function displayRecords() {
   const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
   let html = '';
-  sorted.forEach(r => {
-    html += `<div class="record">
+  sorted.forEach((r, i) => {
+    html += `<div class="record" id="record-${i}" onclick="toggleRecord(${i})">
       <div class="record-header">
         <div class="record-info">
           <strong style="font-size:15px;">${r.date}</strong>
           <span class="badge badge-green">体 ${r.physical}</span>
           <span class="badge badge-red">心 ${r.mental}</span>
-          <button class="btn btn-info btn-small" onclick="editRecord('${r.date}')">✏️ 編集</button>
         </div>
       </div>
-      ${r.memo ? `<p style="margin-top:12px; color:#374151; line-height:1.6;">${r.memo}</p>` : ''}
+      <div class="record-detail">
+        ${r.memo ? `<p style="margin:0 0 15px 0; color:#374151; line-height:1.6;"><strong>メモ:</strong> ${r.memo}</p>` : '<p style="margin:0 0 15px 0; color:#9ca3af;">メモなし</p>'}
+        <button class="btn btn-info btn-small" onclick="event.stopPropagation(); editRecord('${r.date}')">✏️ 編集</button>
+      </div>
     </div>`;
   });
   document.getElementById('recordsList').innerHTML = html;
@@ -515,9 +656,18 @@ function showAIPrompt() {
   const end = document.getElementById('endDate').value;
   const dataText = filtered.map(r => `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`).join('\n');
   
-  const prompt = `私は自分の状態を説明するのが苦手です。以下の期間（${start} 〜 ${end}）の記録を詳細に分析し、2つのセクションに分けて回答してください。
+  let profileSection = '';
+  if (profile.diagnosis || profile.characteristics || profile.medication) {
+    profileSection = '【私について】\n';
+    if (profile.diagnosis) profileSection += `診断名: ${profile.diagnosis}\n`;
+    if (profile.characteristics) profileSection += `特性・困りごと: ${profile.characteristics}\n`;
+    if (profile.medication) profileSection += `服薬内容: ${profile.medication}\n`;
+    profileSection += '\n';
+  }
+  
+  const prompt = `私は自分の状態を説明するのが苦手です。${profileSection ? 'まず私について理解した上で、' : ''}以下の期間（${start} 〜 ${end}）の記録を詳細に分析し、2つのセクションに分けて回答してください。
 
-【回答の構成】
+${profileSection}【回答の構成】
 
 **セクション1: 私への寄り添いメッセージ**
 優しい口調で、私に向けて以下を伝えてください：
@@ -623,7 +773,12 @@ function exportData() {
     return;
   }
   
-  const dataStr = JSON.stringify(records, null, 2);
+  const exportData = {
+    records: records,
+    profile: profile
+  };
+  
+  const dataStr = JSON.stringify(exportData, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -632,7 +787,7 @@ function exportData() {
   a.click();
   URL.revokeObjectURL(url);
   
-  showNotification(`✓ ${records.length}件のデータを書き出しました！`);
+  showNotification(`✓ ${records.length}件のデータとプロフィールを書き出しました！`);
 }
 
 function importData() {
@@ -647,15 +802,35 @@ function importData() {
     reader.onload = function(event) {
       try {
         const imported = JSON.parse(event.target.result);
-        if (!Array.isArray(imported)) throw new Error('無効なデータ形式');
         
-        const confirm = window.confirm(`${imported.length}件のデータを読み込みますか？\n※既存のデータは上書きされます`);
+        let recordsToImport = [];
+        let profileToImport = { diagnosis: '', characteristics: '', medication: '' };
+        
+        if (imported.records && Array.isArray(imported.records)) {
+          recordsToImport = imported.records;
+          if (imported.profile) profileToImport = imported.profile;
+        } else if (Array.isArray(imported)) {
+          recordsToImport = imported;
+        } else {
+          throw new Error('無効なデータ形式');
+        }
+        
+        const confirm = window.confirm(`${recordsToImport.length}件のデータを読み込みますか？\n※既存のデータは上書きされます`);
         if (!confirm) return;
         
-        records = imported;
+        records = recordsToImport;
+        profile = profileToImport;
+        
         localStorage.setItem('balanceRecords', JSON.stringify(records));
+        localStorage.setItem('balanceProfile', JSON.stringify(profile));
+        
+        document.getElementById('diagnosisInput').value = profile.diagnosis || '';
+        document.getElementById('characteristicsInput').value = profile.characteristics || '';
+        document.getElementById('medicationInput').value = profile.medication || '';
+        
         updateDisplay();
-        showNotification(`✓ ${imported.length}件のデータを読み込みました！`);
+        updateProfileInfo();
+        showNotification(`✓ ${recordsToImport.length}件のデータとプロフィールを読み込みました！`);
       } catch (error) {
         showNotification('データの読み込みに失敗しました', 'error');
       }
