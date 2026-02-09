@@ -58,6 +58,7 @@ textarea { resize: none; font-family: sans-serif; }
 .btn-info { background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); }
 .btn-cancel { background: #6b7280; }
 .btn-small { padding: 8px 14px; font-size: 13px; display: inline-block; width: auto; margin: 0 4px; border-radius: 8px; }
+.btn-quick { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 16px; font-size: 16px; margin-top: 10px; }
 .record { background: #f9fafb; padding: 16px; margin: 10px 0; border-radius: 12px; border: 2px solid #e5e7eb; cursor: pointer; transition: all 0.2s; }
 .record:hover { border-color: #a78bfa; }
 .record.expanded { background: white; border-color: #a78bfa; }
@@ -106,6 +107,7 @@ textarea { resize: none; font-family: sans-serif; }
 .backup-section h3 { margin: 0 0 10px 0; font-size: 18px; color: #92400e; }
 .backup-section p { margin: 0 0 15px 0; font-size: 13px; color: #92400e; }
 .backup-info { background: white; border-radius: 8px; padding: 12px; margin: 10px 0; font-size: 13px; color: #374151; }
+.backup-reminder { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 10px 0; border-radius: 8px; font-size: 13px; color: #92400e; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
 .modal.show { display: flex; }
 .modal-content { background: white; border-radius: 20px; padding: 40px; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -116,6 +118,14 @@ textarea { resize: none; font-family: sans-serif; }
 .modal-content .important { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 8px; }
 .modal-close { background: #6b7280; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 .modal-close:hover { background: #4b5563; }
+.preset-button { padding: 8px 14px; background: #dbeafe; color: #1e40af; border: 2px solid #60a5fa; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; margin: 4px; transition: all 0.2s; }
+.preset-button:hover { background: #60a5fa; color: white; }
+.preset-button:active { transform: scale(0.95); }
+.voice-btn { padding: 10px 16px; background: linear-gradient(135deg, #ec4899 0%, #a78bfa 100%); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-left: 10px; transition: all 0.2s; }
+.voice-btn:hover { opacity: 0.9; transform: scale(1.05); }
+.voice-btn.recording { background: #ef4444; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+.memo-controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
 @media (max-width: 600px) {
   .card { padding: 25px; }
   .header h1 { font-size: 28px; }
@@ -244,10 +254,16 @@ textarea { resize: none; font-family: sans-serif; }
       </div>
 
       <label class="label">📝 今日のメモ</label>
+      <div class="memo-controls">
+        <button class="voice-btn" id="voiceBtn" onclick="startVoiceInput()">🎤 音声入力</button>
+        <button class="btn-small" style="background:#e5e7eb; color:#374151;" onclick="copyLastMemo()">📋 前回コピー</button>
+      </div>
+      <div id="presetButtons" class="tag-container" style="margin-bottom:10px;"></div>
       <div id="tagButtons" class="tag-container"></div>
       <textarea id="memoInput" placeholder="気になったこと、感じたこと..." style="height:120px; margin-top:15px;"></textarea>
 
       <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✓ 記録する</button>
+      <button class="btn btn-quick" onclick="quickSave()">⚡ クイック記録（メモなし）</button>
     </div>
 
     <div id="chartCard" class="card hidden">
@@ -290,6 +306,12 @@ textarea { resize: none; font-family: sans-serif; }
         <div id="customTagsList"></div>
       </div>
 
+      <div class="profile-section">
+        <h3>💬 定型文</h3>
+        <p style="color:#6b7280; font-size:13px; margin-bottom:15px;">よく使う言葉を登録しておくと、記録が楽になります</p>
+        <div id="presetList"></div>
+      </div>
+
       <button class="btn btn-success" onclick="saveProfile()">✓ プロフィールを保存</button>
 
       <div class="backup-section">
@@ -299,6 +321,11 @@ textarea { resize: none; font-family: sans-serif; }
         <div class="backup-info">
           <strong>📊 保存されているデータ：</strong>
           <div id="backupInfo" style="margin-top:8px;"></div>
+        </div>
+
+        <div id="backupReminder" class="backup-reminder hidden">
+          <strong>⚠️ バックアップのお知らせ</strong><br>
+          <span id="backupReminderText"></span>
         </div>
 
         <div class="data-management">
@@ -370,7 +397,7 @@ textarea { resize: none; font-family: sans-serif; }
   <div class="card" style="text-align:center; padding:20px; background:transparent; box-shadow:none;">
     <p style="color:#9ca3af; font-size:13px;">🔒 データは全てあなたのデバイスに安全に保存されます</p>
     <p style="color:#9ca3af; font-size:12px; margin-top:8px;">
-      v1.0.0 | 
+      v1.1.0 | 
       <a href="https://docs.google.com/forms/d/e/1FAIpQLScz0mSrhhxfbLGkS7zFycRsr6MJlyGDEoLaPTX1z2PBicdWRw/viewform?usp=dialog" target="_blank" style="color:#9ca3af;">意見箱</a> | 
       <a href="javascript:void(0)" onclick="openTermsModal()" style="color:#9ca3af;">利用規約</a>
     </p>
@@ -383,12 +410,14 @@ let profile = {
   diagnoses: [''],
   characteristics: '', 
   medications: [''],
-  customTags: []
+  customTags: [],
+  presets: ['よく眠れた', '疲れた', '頭痛', '調子いい']
 };
 let isEditing = false;
 let editingDate = null;
 let sliderDragging = { physical: false, mental: false };
 let currentTab = 'record';
+let recognition = null;
 
 function openTermsModal() {
   document.getElementById('termsModal').classList.add('show');
@@ -402,6 +431,182 @@ function closeTermsModal(event) {
   }
 }
 
+function startVoiceInput() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showNotification('音声入力はこのブラウザでは利用できません', 'error');
+    return;
+  }
+  
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  
+  const btn = document.getElementById('voiceBtn');
+  btn.classList.add('recording');
+  btn.textContent = '🎤 録音中...';
+  
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript;
+    const memoInput = document.getElementById('memoInput');
+    memoInput.value = memoInput.value ? `${memoInput.value} ${transcript}` : transcript;
+  };
+  
+  recognition.onerror = function(event) {
+    showNotification('音声認識に失敗しました', 'error');
+    btn.classList.remove('recording');
+    btn.textContent = '🎤 音声入力';
+  };
+  
+  recognition.onend = function() {
+    btn.classList.remove('recording');
+    btn.textContent = '🎤 音声入力';
+  };
+  
+  recognition.start();
+}
+
+function copyLastMemo() {
+  if (records.length === 0) {
+    showNotification('コピーできる記録がありません', 'info');
+    return;
+  }
+  
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const lastMemo = sorted[0].memo || '';
+  
+  if (!lastMemo) {
+    showNotification('前回の記録にメモがありません', 'info');
+    return;
+  }
+  
+  document.getElementById('memoInput').value = lastMemo;
+  showNotification('前回のメモをコピーしました', 'info');
+}
+
+function quickSave() {
+  const date = document.getElementById('dateInput').value;
+  const physical = parseInt(document.getElementById('physicalSlider').value);
+  const mental = parseInt(document.getElementById('mentalSlider').value);
+  
+  if (isEditing && editingDate !== date) {
+    records = records.filter(r => r.date !== editingDate && r.date !== date);
+  } else {
+    records = records.filter(r => r.date !== date);
+  }
+  
+  records.push({ date, physical, mental, memo: '' });
+  records.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  localStorage.setItem('balanceRecords', JSON.stringify(records));
+  showNotification('⚡ クイック記録しました！');
+  
+  isEditing = false;
+  editingDate = null;
+  resetForm();
+  updateDisplay();
+}
+
+function checkBackupReminder() {
+  const lastBackup = localStorage.getItem('lastBackupDate');
+  const reminderDiv = document.getElementById('backupReminder');
+  const reminderText = document.getElementById('backupReminderText');
+  
+  if (!lastBackup) {
+    reminderDiv.classList.remove('hidden');
+    reminderText.textContent = 'まだバックアップを取っていません。大切なデータを守るため、今すぐバックアップを作成してください。';
+    return;
+  }
+  
+  const lastDate = new Date(lastBackup);
+  const today = new Date();
+  const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+  
+  if (daysDiff >= 7) {
+    reminderDiv.classList.remove('hidden');
+    reminderText.textContent = `最後のバックアップから${daysDiff}日経過しています。定期的なバックアップをおすすめします。`;
+  } else {
+    reminderDiv.classList.add('hidden');
+  }
+}
+
+function renderPresetList() {
+  const container = document.getElementById('presetList');
+  container.innerHTML = '';
+  
+  if (profile.presets.length === 0) {
+    profile.presets.push('');
+  }
+  
+  profile.presets.forEach((preset, index) => {
+    const item = document.createElement('div');
+    item.className = 'tag-item';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = preset;
+    input.placeholder = '例：よく眠れた、疲れた、頭痛など';
+    input.oninput = function() {
+      profile.presets[index] = this.value;
+      renderPresetButtons();
+    };
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.presets.splice(index + 1, 0, '');
+      renderPresetList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.presets.length > 1) {
+        profile.presets.splice(index, 1);
+        renderPresetList();
+        renderPresetButtons();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.presets.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderPresetButtons() {
+  const container = document.getElementById('presetButtons');
+  container.innerHTML = '';
+  
+  const activePresets = profile.presets.filter(p => p.trim());
+  
+  if (activePresets.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'flex';
+  
+  activePresets.forEach(preset => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-button';
+    btn.textContent = preset;
+    btn.onclick = function() {
+      const memoInput = document.getElementById('memoInput');
+      const currentValue = memoInput.value;
+      memoInput.value = currentValue ? `${currentValue} ${preset}` : preset;
+    };
+    container.appendChild(btn);
+  });
+}
+
 function init() {
   const saved = localStorage.getItem('balanceRecords');
   if (saved) records = JSON.parse(saved);
@@ -413,7 +618,8 @@ function init() {
       diagnoses: loaded.diagnoses || (loaded.diagnosis ? [loaded.diagnosis] : ['']),
       characteristics: loaded.characteristics || '',
       medications: loaded.medications || (loaded.medication ? [loaded.medication] : ['']),
-      customTags: loaded.customTags || []
+      customTags: loaded.customTags || [],
+      presets: loaded.presets || ['よく眠れた', '疲れた', '頭痛', '調子いい']
     };
   }
   
@@ -439,8 +645,11 @@ function init() {
   renderDiagnosisList();
   renderMedicationList();
   renderCustomTagsList();
+  renderPresetList();
   renderTagButtons();
+  renderPresetButtons();
   updateBackupInfo();
+  checkBackupReminder();
   updatePeriodCount();
   updateDisplay();
   updateProfileInfo();
@@ -458,6 +667,7 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-tab')[1].classList.add('active');
     document.getElementById('profileTab').classList.add('active');
     updateBackupInfo();
+    checkBackupReminder();
   } else if (tab === 'export') {
     document.querySelectorAll('.nav-tab')[2].classList.add('active');
     document.getElementById('exportTab').classList.add('active');
@@ -472,6 +682,7 @@ function updateBackupInfo() {
   const diagnoses = profile.diagnoses.filter(d => d.trim()).length;
   const medications = profile.medications.filter(m => m.trim()).length;
   const tags = profile.customTags.filter(t => t.trim()).length;
+  const lastBackup = localStorage.getItem('lastBackupDate');
   
   let html = `<div style="color:#374151;">`;
   html += `• 体調記録：<strong>${recordCount}件</strong><br>`;
@@ -479,6 +690,10 @@ function updateBackupInfo() {
   html += `• 服薬情報：<strong>${medications}件</strong><br>`;
   html += `• カスタムタグ：<strong>${tags}件</strong><br>`;
   if (profile.characteristics) html += `• 特性：<strong>登録済み</strong><br>`;
+  if (lastBackup) {
+    const date = new Date(lastBackup);
+    html += `<br>📅 最終バックアップ：<strong>${date.toLocaleDateString('ja-JP')}</strong>`;
+  }
   html += `</div>`;
   
   info.innerHTML = html;
@@ -734,15 +949,18 @@ function saveProfile() {
   profile.diagnoses = profile.diagnoses.filter(d => d.trim());
   profile.medications = profile.medications.filter(m => m.trim());
   profile.customTags = profile.customTags.filter(t => t.trim());
+  profile.presets = profile.presets.filter(p => p.trim());
   
   if (profile.diagnoses.length === 0) profile.diagnoses = [''];
   if (profile.medications.length === 0) profile.medications = [''];
+  if (profile.presets.length === 0) profile.presets = ['よく眠れた', '疲れた', '頭痛', '調子いい'];
   
   localStorage.setItem('balanceProfile', JSON.stringify(profile));
   showNotification('✓ プロフィールを保存しました！');
   updateProfileInfo();
   updateBackupInfo();
   renderTagButtons();
+  renderPresetButtons();
 }
 
 function updateProfileInfo() {
@@ -1046,26 +1264,36 @@ function showAIPrompt() {
   }
   
   let analysisInstruction = '';
+  let personalizedAdvice = '';
+  
+  if (profile.characteristics) {
+    personalizedAdvice = `\n【特性に合わせたアドバイス】
+私の特性（${profile.characteristics}）を踏まえて、以下の点を具体的にアドバイスしてください：
+- この特性が体調の変化にどう影響している可能性があるか
+- 特性に配慮した生活の工夫やセルフケアの方法
+- 支援員さんに理解してもらいたい配慮事項\n`;
+  }
+  
   if (days === 1) {
     analysisInstruction = `【今日の詳細分析をお願いします】
 - 体と心の数値から読み取れる今日の状態
 - メモの内容から推測される具体的な出来事や要因
-- 明日以降に活かせる具体的なアドバイス`;
+- 明日以降に活かせる具体的なアドバイス${personalizedAdvice}`;
   } else if (days >= 2 && days <= 7) {
     analysisInstruction = `【週のリズム分析をお願いします】
 - 週の中での体調の波のパターン
 - 曜日や時期による傾向
-- 週単位で意識すべき生活リズムの改善点`;
+- 週単位で意識すべき生活リズムの改善点${personalizedAdvice}`;
   } else if (days >= 8 && days <= 31) {
     analysisInstruction = `【月次バイオリズム分析をお願いします】
 - 1ヶ月を通じた体と心のバランスの変化
 - 良い期間と苦しい期間の特徴
-- 月単位で調整すべき生活習慣や環境要因`;
+- 月単位で調整すべき生活習慣や環境要因${personalizedAdvice}`;
   } else {
     analysisInstruction = `【長期トレンド分析をお願いします】
 - 長期的な体調の推移とパターン
 - 環境や季節による影響の可能性
-- 今後の生活設計に向けた中長期的な提言`;
+- 今後の生活設計に向けた中長期的な提言${personalizedAdvice}`;
   }
   
   const prompt = `私は自分の状態を説明するのが苦手です。${profileSection ? '以下の背景情報を踏まえた上で、' : ''}${start}〜${end}の記録（${days}日分）を詳細に分析し、2つのセクションに分けて回答してください。
@@ -1079,6 +1307,7 @@ ${profileSection}${analysisInstruction}
 - この期間の頑張りや変化への労いの言葉
 - 気づいたパターンや傾向についてのアドバイス
 - 今後気をつけるとよいこと
+${profile.characteristics ? `- 私の特性（${profile.characteristics}）に配慮した具体的なアドバイス` : ''}
 
 **セクション2: 支援員さんへの共有用（必ず以下の形式で）**
 
@@ -1098,6 +1327,7 @@ ${start} 〜 ${end}（${days}日分）
 
 【支援員さんへ】
 面談で確認してほしいポイント、サポートのアドバイス
+${profile.characteristics ? `\n【特性への配慮】\n利用者の特性（${profile.characteristics}）に対する具体的な配慮事項` : ''}
 
 ▲ここまでコピー▲
 
@@ -1179,7 +1409,7 @@ function exportData() {
   }
   
   const exportData = {
-    version: '1.0.0',
+    version: '1.1.0',
     exportDate: new Date().toISOString(),
     records: records,
     profile: profile
@@ -1194,7 +1424,11 @@ function exportData() {
   a.click();
   URL.revokeObjectURL(url);
   
+  localStorage.setItem('lastBackupDate', new Date().toISOString());
+  
   showNotification(`✓ バックアップファイルを作成しました！`);
+  updateBackupInfo();
+  checkBackupReminder();
 }
 
 function importData() {
@@ -1211,7 +1445,7 @@ function importData() {
         const imported = JSON.parse(event.target.result);
         
         let recordsToImport = [];
-        let profileToImport = { diagnoses: [''], characteristics: '', medications: [''], customTags: [] };
+        let profileToImport = { diagnoses: [''], characteristics: '', medications: [''], customTags: [], presets: ['よく眠れた', '疲れた', '頭痛', '調子いい'] };
         
         if (imported.records && Array.isArray(imported.records)) {
           recordsToImport = imported.records;
@@ -1221,7 +1455,8 @@ function importData() {
               diagnoses: p.diagnoses || (p.diagnosis ? [p.diagnosis] : ['']),
               characteristics: p.characteristics || '',
               medications: p.medications || (p.medication ? [p.medication] : ['']),
-              customTags: p.customTags || []
+              customTags: p.customTags || [],
+              presets: p.presets || ['よく眠れた', '疲れた', '頭痛', '調子いい']
             };
           }
         } else if (Array.isArray(imported)) {
@@ -1245,7 +1480,9 @@ function importData() {
         renderDiagnosisList();
         renderMedicationList();
         renderCustomTagsList();
+        renderPresetList();
         renderTagButtons();
+        renderPresetButtons();
         updateDisplay();
         updateProfileInfo();
         updateBackupInfo();
