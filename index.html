@@ -38,9 +38,9 @@ body { margin: 0; font-family: sans-serif; background: linear-gradient(135deg, #
 input[type="date"], input[type="text"], textarea { width: 100%; padding: 16px; font-size: 16px; border: 2px solid #e5e7eb; border-radius: 12px; }
 textarea { resize: none; font-family: sans-serif; }
 .slider-container { margin: 40px 0; padding: 10px 0; }
-.slider { width: 100%; height: 14px; border-radius: 7px; outline: none; -webkit-appearance: none; background: #d1d5db; cursor: pointer; }
+.slider { width: 100%; height: 14px; border-radius: 7px; outline: none; -webkit-appearance: none; background: #d1d5db; cursor: default; pointer-events: none; }
 .slider::-webkit-slider-track { height: 14px; border-radius: 7px; }
-.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 48px; height: 48px; background: white; border: 5px solid #86efac; border-radius: 50%; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.15s ease; margin-top: -17px; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; width: 48px; height: 48px; background: white; border: 5px solid #86efac; border-radius: 50%; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.15s ease; margin-top: -17px; pointer-events: auto; }
 .slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
 .slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.15); }
 .slider::-moz-range-track { height: 14px; border-radius: 7px; background: #d1d5db; border: none; }
@@ -84,10 +84,19 @@ textarea { resize: none; font-family: sans-serif; }
 .floating-btn { position: fixed; bottom: 20px; right: 20px; width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); color: white; border: none; font-size: 24px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; transition: all 0.2s; }
 .floating-btn:hover { transform: scale(1.1); }
 .floating-btn:active { transform: scale(0.95); }
-.profile-field { margin-bottom: 25px; }
-.profile-field label { display: block; font-size: 16px; font-weight: bold; color: #374151; margin-bottom: 8px; }
-.profile-field input, .profile-field textarea { width: 100%; padding: 14px; font-size: 15px; border: 2px solid #e5e7eb; border-radius: 10px; }
-.profile-field textarea { height: 100px; resize: vertical; }
+.profile-section { margin-bottom: 35px; }
+.profile-section h3 { margin: 0 0 15px 0; font-size: 18px; color: #374151; display: flex; align-items: center; gap: 10px; }
+.profile-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.profile-item input { flex: 1; }
+.profile-item button { padding: 12px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; min-width: 44px; }
+.btn-add { background: #34d399; color: white; }
+.btn-remove { background: #ef4444; color: white; }
+.tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.tag-button { padding: 8px 16px; background: #e9d5ff; color: #7c3aed; border: 2px solid #a78bfa; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+.tag-button:hover { background: #a78bfa; color: white; }
+.tag-button:active { transform: scale(0.95); }
+.tag-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.tag-item input { flex: 1; }
 .profile-info-box { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
 .profile-info-box h4 { margin: 0 0 10px 0; color: #1e40af; font-size: 15px; }
 .profile-info-box p { margin: 5px 0; font-size: 14px; color: #1e40af; }
@@ -114,7 +123,7 @@ textarea { resize: none; font-family: sans-serif; }
 
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('record')">📝 記録</button>
-    <button class="nav-tab" onclick="switchTab('profile')">👤 プロフィール</button>
+    <button class="nav-tab" onclick="switchTab('profile')">👤 設定</button>
     <button class="nav-tab" onclick="switchTab('export')">📤 共有</button>
   </div>
 
@@ -143,7 +152,8 @@ textarea { resize: none; font-family: sans-serif; }
       </div>
 
       <label class="label">📝 今日のメモ</label>
-      <textarea id="memoInput" placeholder="気になったこと、感じたこと..." style="height:120px;"></textarea>
+      <div id="tagButtons" class="tag-container"></div>
+      <textarea id="memoInput" placeholder="気になったこと、感じたこと..." style="height:120px; margin-top:15px;"></textarea>
 
       <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✓ 記録する</button>
     </div>
@@ -161,25 +171,31 @@ textarea { resize: none; font-family: sans-serif; }
     </div>
   </div>
 
-  <!-- プロフィールタブ -->
+  <!-- 設定タブ -->
   <div id="profileTab" class="tab-content">
     <div class="card">
       <h2 style="margin-top:0; margin-bottom:10px; font-size:22px; color:#374151;">👤 プロフィール設定</h2>
       <p style="color:#6b7280; font-size:14px; margin-bottom:30px;">AI分析をより的確にするため、あなたの情報を入力してください</p>
 
-      <div class="profile-field">
-        <label>🏥 診断名</label>
-        <input type="text" id="diagnosisInput" placeholder="例：知的障害、ADHD、ASDなど">
+      <div class="profile-section">
+        <h3>🏥 診断名</h3>
+        <div id="diagnosisList"></div>
       </div>
 
-      <div class="profile-field">
-        <label>✨ 自分の特性・困りごと</label>
-        <textarea id="characteristicsInput" placeholder="例：マルチタスクが苦手、急な変更に弱い、音に敏感など"></textarea>
+      <div class="profile-section">
+        <h3>✨ 自分の特性・困りごと</h3>
+        <textarea id="characteristicsInput" placeholder="例：マルチタスクが苦手、急な変更に弱い、音に敏感など" style="height:100px;"></textarea>
       </div>
 
-      <div class="profile-field">
-        <label>💊 現在の服薬内容</label>
-        <textarea id="medicationInput" placeholder="例：○○（朝1錠、夜1錠）、△△（頓服）など"></textarea>
+      <div class="profile-section">
+        <h3>💊 服薬内容</h3>
+        <div id="medicationList"></div>
+      </div>
+
+      <div class="profile-section">
+        <h3>🏷️ カスタムタグ</h3>
+        <p style="color:#6b7280; font-size:13px; margin-bottom:15px;">記録時にワンタップで入力できるタグを登録してください</p>
+        <div id="customTagsList"></div>
       </div>
 
       <button class="btn btn-success" onclick="saveProfile()">✓ プロフィールを保存</button>
@@ -198,7 +214,7 @@ textarea { resize: none; font-family: sans-serif; }
 
       <div class="period-selector">
         <h3 style="margin:0 0 5px 0; font-size:18px; color:#374151;">📆 出力期間を選択</h3>
-        <p style="margin:0 0 10px 0; font-size:13px; color:#6b7280;">選択期間: <strong id="periodCount">0日分</strong></p>
+        <p style="margin:0 0 10px 0; font-size:13px; color:#6b7280;">選択期間: <strong id="periodCount">0日分</strong> <span id="periodType" style="color:#7c3aed; font-weight:bold;"></span></p>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
           <div>
             <label style="font-size:13px; font-weight:bold; color:#374151; display:block; margin-bottom:5px;">開始日</label>
@@ -210,6 +226,7 @@ textarea { resize: none; font-family: sans-serif; }
           </div>
         </div>
         <div class="period-buttons">
+          <button class="period-btn" onclick="setPeriod(1)">今日のみ</button>
           <button class="period-btn" onclick="setPeriod(7)">直近1週間</button>
           <button class="period-btn active" onclick="setPeriod(30)">直近1ヶ月</button>
           <button class="period-btn" onclick="setPeriod(90)">直近3ヶ月</button>
@@ -220,7 +237,7 @@ textarea { resize: none; font-family: sans-serif; }
       
       <div id="aiPromptPreview" class="preview-area hidden">
         <p style="margin:0 0 10px 0; font-size:14px; font-weight:bold; color:#92400e;">💡 以下の内容がコピーされます：</p>
-        <textarea id="aiPromptText" readonly style="height:250px;" onclick="this.select()"></textarea>
+        <textarea id="aiPromptText" readonly style="height:300px;" onclick="this.select()"></textarea>
         <button class="btn btn-info" onclick="copyAIPrompt()">📋 コピーする</button>
       </div>
 
@@ -256,11 +273,15 @@ textarea { resize: none; font-family: sans-serif; }
 
 <script>
 let records = [];
-let profile = { diagnosis: '', characteristics: '', medication: '' };
+let profile = { 
+  diagnoses: [''],
+  characteristics: '', 
+  medications: [''],
+  customTags: []
+};
 let isEditing = false;
 let editingDate = null;
 let sliderDragging = { physical: false, mental: false };
-let touchStart = { physical: null, mental: null };
 let currentTab = 'record';
 
 function init() {
@@ -269,10 +290,13 @@ function init() {
   
   const savedProfile = localStorage.getItem('balanceProfile');
   if (savedProfile) {
-    profile = JSON.parse(savedProfile);
-    document.getElementById('diagnosisInput').value = profile.diagnosis || '';
-    document.getElementById('characteristicsInput').value = profile.characteristics || '';
-    document.getElementById('medicationInput').value = profile.medication || '';
+    const loaded = JSON.parse(savedProfile);
+    profile = {
+      diagnoses: loaded.diagnoses || (loaded.diagnosis ? [loaded.diagnosis] : ['']),
+      characteristics: loaded.characteristics || '',
+      medications: loaded.medications || (loaded.medication ? [loaded.medication] : ['']),
+      customTags: loaded.customTags || []
+    };
   }
   
   const today = new Date().toISOString().split('T')[0];
@@ -292,6 +316,12 @@ function init() {
     document.getElementById('aiResultStatus').classList.toggle('hidden', !this.value.trim());
   };
   
+  document.getElementById('characteristicsInput').value = profile.characteristics;
+  
+  renderDiagnosisList();
+  renderMedicationList();
+  renderCustomTagsList();
+  renderTagButtons();
   updatePeriodCount();
   updateDisplay();
   updateProfileInfo();
@@ -334,35 +364,58 @@ function setupSlider(type) {
   const slider = document.getElementById(`${type}Slider`);
   const valueSpan = document.getElementById(`${type}Value`);
   
-  slider.oninput = function() {
-    if (sliderDragging[type]) {
+  let isDraggingThumb = false;
+  
+  slider.addEventListener('mousedown', function(e) {
+    const thumb = e.target;
+    if (thumb === slider) {
+      const rect = slider.getBoundingClientRect();
+      const thumbWidth = 48;
+      const mouseX = e.clientX - rect.left;
+      const value = parseInt(slider.value);
+      const valuePercent = (value - 1) / 9;
+      const thumbCenter = rect.width * valuePercent;
+      
+      if (Math.abs(mouseX - thumbCenter) <= thumbWidth / 2) {
+        isDraggingThumb = true;
+      }
+    }
+  });
+  
+  slider.addEventListener('touchstart', function(e) {
+    const rect = slider.getBoundingClientRect();
+    const touch = e.touches[0];
+    const thumbWidth = 48;
+    const touchX = touch.clientX - rect.left;
+    const value = parseInt(slider.value);
+    const valuePercent = (value - 1) / 9;
+    const thumbCenter = rect.width * valuePercent;
+    
+    if (Math.abs(touchX - thumbCenter) <= thumbWidth / 2) {
+      isDraggingThumb = true;
+    }
+  });
+  
+  slider.addEventListener('input', function() {
+    if (isDraggingThumb) {
       valueSpan.textContent = this.value;
       updateSliderBackground(this, type);
+    } else {
+      this.value = valueSpan.textContent;
     }
-  };
+  });
   
-  slider.onmousedown = function() { sliderDragging[type] = true; };
-  slider.onmouseup = function() { sliderDragging[type] = false; };
+  slider.addEventListener('mouseup', function() {
+    isDraggingThumb = false;
+  });
   
-  slider.ontouchstart = function(e) {
-    const touch = e.touches[0];
-    touchStart[type] = { x: touch.clientX, y: touch.clientY };
-    sliderDragging[type] = false;
-  };
+  slider.addEventListener('touchend', function() {
+    isDraggingThumb = false;
+  });
   
-  slider.ontouchmove = function(e) {
-    if (touchStart[type]) {
-      const touch = e.touches[0];
-      const moveX = Math.abs(touch.clientX - touchStart[type].x);
-      const moveY = Math.abs(touch.clientY - touchStart[type].y);
-      if (moveX > 5 && moveX > moveY) sliderDragging[type] = true;
-    }
-  };
-  
-  slider.ontouchend = function() {
-    sliderDragging[type] = false;
-    touchStart[type] = null;
-  };
+  document.addEventListener('mouseup', function() {
+    isDraggingThumb = false;
+  });
   
   updateSliderBackground(slider, type);
 }
@@ -374,27 +427,196 @@ function updateSliderBackground(slider, type) {
   slider.style.background = `linear-gradient(90deg, ${color} ${percent}%, #d1d5db ${percent}%)`;
 }
 
+function renderDiagnosisList() {
+  const container = document.getElementById('diagnosisList');
+  container.innerHTML = '';
+  
+  profile.diagnoses.forEach((diagnosis, index) => {
+    const item = document.createElement('div');
+    item.className = 'profile-item';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = diagnosis;
+    input.placeholder = '例：ADHD、ASD、知的障害など';
+    input.oninput = function() {
+      profile.diagnoses[index] = this.value;
+    };
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.diagnoses.splice(index + 1, 0, '');
+      renderDiagnosisList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.diagnoses.length > 1) {
+        profile.diagnoses.splice(index, 1);
+        renderDiagnosisList();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.diagnoses.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderMedicationList() {
+  const container = document.getElementById('medicationList');
+  container.innerHTML = '';
+  
+  profile.medications.forEach((medication, index) => {
+    const item = document.createElement('div');
+    item.className = 'profile-item';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = medication;
+    input.placeholder = '例：○○（朝1錠、夜1錠）';
+    input.oninput = function() {
+      profile.medications[index] = this.value;
+    };
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.medications.splice(index + 1, 0, '');
+      renderMedicationList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.medications.length > 1) {
+        profile.medications.splice(index, 1);
+        renderMedicationList();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.medications.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderCustomTagsList() {
+  const container = document.getElementById('customTagsList');
+  container.innerHTML = '';
+  
+  if (profile.customTags.length === 0) {
+    profile.customTags.push('');
+  }
+  
+  profile.customTags.forEach((tag, index) => {
+    const item = document.createElement('div');
+    item.className = 'tag-item';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = tag;
+    input.placeholder = '例：#反芻あり、#仕事、#ASMRなど';
+    input.oninput = function() {
+      profile.customTags[index] = this.value;
+      renderTagButtons();
+    };
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.customTags.splice(index + 1, 0, '');
+      renderCustomTagsList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.customTags.length > 1) {
+        profile.customTags.splice(index, 1);
+        renderCustomTagsList();
+        renderTagButtons();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.customTags.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderTagButtons() {
+  const container = document.getElementById('tagButtons');
+  container.innerHTML = '';
+  
+  const activeTags = profile.customTags.filter(t => t.trim());
+  
+  if (activeTags.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'flex';
+  
+  activeTags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-button';
+    btn.textContent = tag;
+    btn.onclick = function() {
+      const memoInput = document.getElementById('memoInput');
+      const currentValue = memoInput.value;
+      memoInput.value = currentValue ? `${currentValue} ${tag}` : tag;
+    };
+    container.appendChild(btn);
+  });
+}
+
 function saveProfile() {
-  profile = {
-    diagnosis: document.getElementById('diagnosisInput').value.trim(),
-    characteristics: document.getElementById('characteristicsInput').value.trim(),
-    medication: document.getElementById('medicationInput').value.trim()
-  };
+  profile.characteristics = document.getElementById('characteristicsInput').value.trim();
+  profile.diagnoses = profile.diagnoses.filter(d => d.trim());
+  profile.medications = profile.medications.filter(m => m.trim());
+  profile.customTags = profile.customTags.filter(t => t.trim());
+  
+  if (profile.diagnoses.length === 0) profile.diagnoses = [''];
+  if (profile.medications.length === 0) profile.medications = [''];
   
   localStorage.setItem('balanceProfile', JSON.stringify(profile));
   showNotification('✓ プロフィールを保存しました！');
   updateProfileInfo();
+  renderTagButtons();
 }
 
 function updateProfileInfo() {
-  const hasProfile = profile.diagnosis || profile.characteristics || profile.medication;
+  const diagnoses = profile.diagnoses.filter(d => d.trim());
+  const medications = profile.medications.filter(m => m.trim());
+  const hasProfile = diagnoses.length > 0 || profile.characteristics || medications.length > 0;
   const box = document.getElementById('profileInfoBox');
   
   if (hasProfile) {
     let info = [];
-    if (profile.diagnosis) info.push(`診断: ${profile.diagnosis}`);
+    if (diagnoses.length > 0) info.push(`診断: ${diagnoses.join('、')}`);
     if (profile.characteristics) info.push(`特性: ${profile.characteristics}`);
-    if (profile.medication) info.push(`服薬: ${profile.medication}`);
+    if (medications.length > 0) info.push(`服薬: ${medications.join('、')}`);
     
     document.getElementById('profileInfoText').textContent = info.join(' / ');
     box.classList.remove('hidden');
@@ -624,7 +846,13 @@ function displayRecords() {
 function setPeriod(days) {
   const end = new Date();
   const start = new Date();
-  start.setDate(start.getDate() - days);
+  
+  if (days === 1) {
+    start.setDate(end.getDate());
+  } else {
+    start.setDate(start.getDate() - days + 1);
+  }
+  
   document.getElementById('startDate').value = start.toISOString().split('T')[0];
   document.getElementById('endDate').value = end.toISOString().split('T')[0];
   
@@ -636,7 +864,16 @@ function setPeriod(days) {
 
 function updatePeriodCount() {
   const filtered = getFilteredRecords();
-  document.getElementById('periodCount').textContent = `${filtered.length}日分`;
+  const days = filtered.length;
+  document.getElementById('periodCount').textContent = `${days}日分`;
+  
+  let periodType = '';
+  if (days === 1) periodType = '（今日の詳細分析）';
+  else if (days >= 2 && days <= 7) periodType = '（週のリズム分析）';
+  else if (days >= 8 && days <= 31) periodType = '（月次バイオリズム）';
+  else if (days > 31) periodType = '（長期トレンド分析）';
+  
+  document.getElementById('periodType').textContent = periodType;
 }
 
 function getFilteredRecords() {
@@ -654,20 +891,49 @@ function showAIPrompt() {
   
   const start = document.getElementById('startDate').value;
   const end = document.getElementById('endDate').value;
+  const days = filtered.length;
   const dataText = filtered.map(r => `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`).join('\n');
   
   let profileSection = '';
-  if (profile.diagnosis || profile.characteristics || profile.medication) {
-    profileSection = '【私について】\n';
-    if (profile.diagnosis) profileSection += `診断名: ${profile.diagnosis}\n`;
+  const diagnoses = profile.diagnoses.filter(d => d.trim());
+  const medications = profile.medications.filter(m => m.trim());
+  
+  if (diagnoses.length > 0 || profile.characteristics || medications.length > 0) {
+    profileSection = '【私の背景情報】\n';
+    if (diagnoses.length > 0) profileSection += `診断名: ${diagnoses.join('、')}\n`;
     if (profile.characteristics) profileSection += `特性・困りごと: ${profile.characteristics}\n`;
-    if (profile.medication) profileSection += `服薬内容: ${profile.medication}\n`;
+    if (medications.length > 0) profileSection += `服薬内容: ${medications.join('、')}\n`;
     profileSection += '\n';
   }
   
-  const prompt = `私は自分の状態を説明するのが苦手です。${profileSection ? 'まず私について理解した上で、' : ''}以下の期間（${start} 〜 ${end}）の記録を詳細に分析し、2つのセクションに分けて回答してください。
+  let analysisInstruction = '';
+  if (days === 1) {
+    analysisInstruction = `【今日の詳細分析をお願いします】
+- 体と心の数値から読み取れる今日の状態
+- メモの内容から推測される具体的な出来事や要因
+- 明日以降に活かせる具体的なアドバイス`;
+  } else if (days >= 2 && days <= 7) {
+    analysisInstruction = `【週のリズム分析をお願いします】
+- 週の中での体調の波のパターン
+- 曜日や時期による傾向
+- 週単位で意識すべき生活リズムの改善点`;
+  } else if (days >= 8 && days <= 31) {
+    analysisInstruction = `【月次バイオリズム分析をお願いします】
+- 1ヶ月を通じた体と心のバランスの変化
+- 良い期間と苦しい期間の特徴
+- 月単位で調整すべき生活習慣や環境要因`;
+  } else {
+    analysisInstruction = `【長期トレンド分析をお願いします】
+- 長期的な体調の推移とパターン
+- 環境や季節による影響の可能性
+- 今後の生活設計に向けた中長期的な提言`;
+  }
+  
+  const prompt = `私は自分の状態を説明するのが苦手です。${profileSection ? '以下の背景情報を踏まえた上で、' : ''}${start}〜${end}の記録（${days}日分）を詳細に分析し、2つのセクションに分けて回答してください。
 
-${profileSection}【回答の構成】
+${profileSection}${analysisInstruction}
+
+【回答の構成】
 
 **セクション1: 私への寄り添いメッセージ**
 優しい口調で、私に向けて以下を伝えてください：
@@ -680,7 +946,7 @@ ${profileSection}【回答の構成】
 ▼ここからコピー▼
 
 【期間】
-${start} 〜 ${end}
+${start} 〜 ${end}（${days}日分）
 
 【バランス分析】
 体と心の数値の乖離、バランスの状態について
@@ -804,11 +1070,19 @@ function importData() {
         const imported = JSON.parse(event.target.result);
         
         let recordsToImport = [];
-        let profileToImport = { diagnosis: '', characteristics: '', medication: '' };
+        let profileToImport = { diagnoses: [''], characteristics: '', medications: [''], customTags: [] };
         
         if (imported.records && Array.isArray(imported.records)) {
           recordsToImport = imported.records;
-          if (imported.profile) profileToImport = imported.profile;
+          if (imported.profile) {
+            const p = imported.profile;
+            profileToImport = {
+              diagnoses: p.diagnoses || (p.diagnosis ? [p.diagnosis] : ['']),
+              characteristics: p.characteristics || '',
+              medications: p.medications || (p.medication ? [p.medication] : ['']),
+              customTags: p.customTags || []
+            };
+          }
         } else if (Array.isArray(imported)) {
           recordsToImport = imported;
         } else {
@@ -824,10 +1098,12 @@ function importData() {
         localStorage.setItem('balanceRecords', JSON.stringify(records));
         localStorage.setItem('balanceProfile', JSON.stringify(profile));
         
-        document.getElementById('diagnosisInput').value = profile.diagnosis || '';
-        document.getElementById('characteristicsInput').value = profile.characteristics || '';
-        document.getElementById('medicationInput').value = profile.medication || '';
+        document.getElementById('characteristicsInput').value = profile.characteristics;
         
+        renderDiagnosisList();
+        renderMedicationList();
+        renderCustomTagsList();
+        renderTagButtons();
         updateDisplay();
         updateProfileInfo();
         showNotification(`✓ ${recordsToImport.length}件のデータとプロフィールを読み込みました！`);
