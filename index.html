@@ -106,6 +106,16 @@ textarea { resize: none; font-family: sans-serif; }
 .backup-section h3 { margin: 0 0 10px 0; font-size: 18px; color: #92400e; }
 .backup-section p { margin: 0 0 15px 0; font-size: 13px; color: #92400e; }
 .backup-info { background: white; border-radius: 8px; padding: 12px; margin: 10px 0; font-size: 13px; color: #374151; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+.modal.show { display: flex; }
+.modal-content { background: white; border-radius: 20px; padding: 40px; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.modal-content h2 { margin-top: 0; color: #374151; font-size: 24px; }
+.modal-content h3 { color: #6b7280; font-size: 18px; margin-top: 25px; margin-bottom: 10px; }
+.modal-content p { color: #374151; line-height: 1.8; margin: 10px 0; }
+.modal-content ul { color: #374151; line-height: 1.8; padding-left: 25px; }
+.modal-content .important { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 8px; }
+.modal-close { background: #6b7280; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+.modal-close:hover { background: #4b5563; }
 @media (max-width: 600px) {
   .card { padding: 25px; }
   .header h1 { font-size: 28px; }
@@ -115,6 +125,7 @@ textarea { resize: none; font-family: sans-serif; }
   .period-btn { width: 100%; }
   .floating-btn { bottom: 15px; right: 15px; width: 56px; height: 56px; font-size: 20px; }
   .data-management { grid-template-columns: 1fr; }
+  .modal-content { padding: 25px; }
 }
 </style>
 </head>
@@ -122,6 +133,78 @@ textarea { resize: none; font-family: sans-serif; }
 
 <div id="notification" class="notification hidden"></div>
 <button id="floatingAIBtn" class="floating-btn hidden" onclick="scrollToAI()" title="AI分析">🤖</button>
+
+<!-- 利用規約モーダル -->
+<div id="termsModal" class="modal" onclick="closeTermsModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h2>📋 利用規約・免責事項</h2>
+    
+    <h3>1. このアプリについて</h3>
+    <p>My Balance Board（以下「本アプリ」）は、日々の体調を記録し、自己理解を深めるための支援ツールです。就労移行支援などの福祉サービス利用者が、支援員との面談をより円滑にすることを目的としています。</p>
+    
+    <div class="important">
+      <h3 style="margin-top:0;">⚠️ 重要な注意事項</h3>
+      <ul style="margin-bottom:0;">
+        <li><strong>本アプリは医療機器ではありません</strong></li>
+        <li><strong>AI分析は医学的診断や治療行為ではありません</strong></li>
+        <li><strong>必ず主治医や専門家の指示を優先してください</strong></li>
+      </ul>
+    </div>
+    
+    <h3>2. AI分析機能について</h3>
+    <p>本アプリのAI分析機能は、記録されたデータから傾向やパターンを読み取り、参考情報として提示するものです。以下の点にご注意ください：</p>
+    <ul>
+      <li>AI分析の結果は医学的根拠に基づくものではありません</li>
+      <li>診断、治療、投薬の判断材料として使用しないでください</li>
+      <li>体調の急激な悪化や緊急時は、直ちに医療機関を受診してください</li>
+      <li>服薬の中断・変更は、必ず主治医に相談してください</li>
+    </ul>
+    
+    <h3>3. データ管理の責任</h3>
+    <p>本アプリで記録されたデータは、お使いのデバイスのローカルストレージに保存されます。データの管理は以下の通りです：</p>
+    <ul>
+      <li><strong>データの保存・管理は利用者の自己責任です</strong></li>
+      <li>ブラウザのキャッシュ削除やデバイスの故障によりデータが失われる可能性があります</li>
+      <li>定期的にバックアップを取ることを強く推奨します</li>
+      <li>開発者はデータの消失・破損について一切の責任を負いません</li>
+      <li>データの漏洩を防ぐため、共用端末での使用は避けてください</li>
+    </ul>
+    
+    <h3>4. プライバシーについて</h3>
+    <ul>
+      <li>本アプリは個人情報を外部サーバーに送信しません</li>
+      <li>すべてのデータはお使いのデバイス内に保存されます</li>
+      <li>意見箱（Googleフォーム）経由で送信された情報は、アプリ改善目的でのみ使用します</li>
+      <li>個人を特定できる情報の送信は任意です</li>
+    </ul>
+    
+    <h3>5. 免責事項</h3>
+    <ul>
+      <li>本アプリの使用により生じたいかなる損害についても、開発者は責任を負いません</li>
+      <li>本アプリの動作を保証するものではありません</li>
+      <li>予告なく機能の変更・追加・削除を行う場合があります</li>
+      <li>本アプリの使用は、利用者の自己責任において行ってください</li>
+    </ul>
+    
+    <h3>6. 推奨される使用方法</h3>
+    <p>本アプリを安全にご利用いただくために、以下を推奨します：</p>
+    <ul>
+      <li>主治医や支援員と相談の上で使用してください</li>
+      <li>記録は正直に、ありのままを入力してください</li>
+      <li>AI分析は参考程度にとどめ、過度に依存しないでください</li>
+      <li>体調に異変を感じたら、すぐに専門家に相談してください</li>
+      <li>週1回程度、定期的にバックアップを取ってください</li>
+    </ul>
+    
+    <div class="important">
+      <p style="margin:0;"><strong>本アプリを使用することで、上記の利用規約・免責事項に同意したものとみなします。</strong></p>
+    </div>
+    
+    <p style="margin-top:25px; color:#6b7280; font-size:14px;">最終更新日：2025年2月9日</p>
+    
+    <button class="modal-close" onclick="closeTermsModal()">閉じる</button>
+  </div>
+</div>
 
 <div class="container">
   <div class="header">
@@ -286,7 +369,11 @@ textarea { resize: none; font-family: sans-serif; }
 
   <div class="card" style="text-align:center; padding:20px; background:transparent; box-shadow:none;">
     <p style="color:#9ca3af; font-size:13px;">🔒 データは全てあなたのデバイスに安全に保存されます</p>
-    <p style="color:#9ca3af; font-size:12px; margin-top:8px;">v1.0.0 | <a href="https://docs.google.com/forms/d/e/1FAIpQLScz0mSrhhxfbLGkS7zFycRsr6MJlyGDEoLaPTX1z2PBicdWRw/viewform?usp=dialog" target="_blank" style="color:#9ca3af;">意見箱</a></p>
+    <p style="color:#9ca3af; font-size:12px; margin-top:8px;">
+      v1.0.0 | 
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLScz0mSrhhxfbLGkS7zFycRsr6MJlyGDEoLaPTX1z2PBicdWRw/viewform?usp=dialog" target="_blank" style="color:#9ca3af;">意見箱</a> | 
+      <a href="javascript:void(0)" onclick="openTermsModal()" style="color:#9ca3af;">利用規約</a>
+    </p>
   </div>
 </div>
 
@@ -302,6 +389,18 @@ let isEditing = false;
 let editingDate = null;
 let sliderDragging = { physical: false, mental: false };
 let currentTab = 'record';
+
+function openTermsModal() {
+  document.getElementById('termsModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTermsModal(event) {
+  if (!event || event.target.id === 'termsModal') {
+    document.getElementById('termsModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+  }
+}
 
 function init() {
   const saved = localStorage.getItem('balanceRecords');
