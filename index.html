@@ -93,10 +93,12 @@ textarea { resize: none; font-family: sans-serif; }
 .profile-item button { padding: 12px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; min-width: 44px; }
 .btn-add { background: #34d399; color: white; }
 .btn-remove { background: #ef4444; color: white; }
-.preset-button { padding: 8px 14px; background: #dbeafe; color: #1e40af; border: 2px solid #60a5fa; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; margin: 4px; transition: all 0.2s; }
-.preset-button:hover { background: #60a5fa; color: white; }
-.preset-button:active { transform: scale(0.95); }
-.memo-controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.tag-button { padding: 8px 16px; background: #e9d5ff; color: #7c3aed; border: 2px solid #a78bfa; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+.tag-button:hover { background: #a78bfa; color: white; }
+.tag-button:active { transform: scale(0.95); }
+.tag-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.tag-item input { flex: 1; }
 .profile-info-box { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
 .profile-info-box h4 { margin: 0 0 10px 0; color: #1e40af; font-size: 15px; }
 .profile-info-box p { margin: 5px 0; font-size: 14px; color: #1e40af; }
@@ -104,7 +106,6 @@ textarea { resize: none; font-family: sans-serif; }
 .backup-section h3 { margin: 0 0 10px 0; font-size: 18px; color: #92400e; }
 .backup-section p { margin: 0 0 15px 0; font-size: 13px; color: #92400e; }
 .backup-info { background: white; border-radius: 8px; padding: 12px; margin: 10px 0; font-size: 13px; color: #374151; }
-.backup-reminder { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 10px 0; border-radius: 8px; font-size: 13px; color: #92400e; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
 .modal.show { display: flex; }
 .modal-content { background: white; border-radius: 20px; padding: 40px; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
@@ -115,13 +116,8 @@ textarea { resize: none; font-family: sans-serif; }
 .modal-content .important { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 8px; }
 .modal-close { background: #6b7280; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 .modal-close:hover { background: #4b5563; }
-.tag-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.tag-item input { flex: 1; }
-.section-card { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.section-card h2 { margin-top: 0; margin-bottom: 20px; font-size: 22px; color: #374151; display: flex; align-items: center; gap: 10px; }
 @media (max-width: 600px) {
   .card { padding: 25px; }
-  .section-card { padding: 20px; }
   .header h1 { font-size: 28px; }
   .feedback-btn { position: static; display: block; margin: 15px auto 0; width: fit-content; }
   #chartCanvas { height: 400px; }
@@ -204,7 +200,7 @@ textarea { resize: none; font-family: sans-serif; }
       <p style="margin:0;"><strong>本アプリを使用することで、上記の利用規約・免責事項に同意したものとみなします。</strong></p>
     </div>
     
-    <p style="margin-top:25px; color:#6b7280; font-size:14px;">最終更新日：2025年2月10日</p>
+    <p style="margin-top:25px; color:#6b7280; font-size:14px;">最終更新日：2025年2月9日</p>
     
     <button class="modal-close" onclick="closeTermsModal()">閉じる</button>
   </div>
@@ -248,10 +244,7 @@ textarea { resize: none; font-family: sans-serif; }
       </div>
 
       <label class="label">📝 今日のメモ</label>
-      <div class="memo-controls">
-        <button class="btn-small" style="background:#e5e7eb; color:#374151;" onclick="copyLastMemo()">📋 前回コピー</button>
-      </div>
-      <div id="presetButtons" style="margin-bottom:10px;"></div>
+      <div id="tagButtons" class="tag-container"></div>
       <textarea id="memoInput" placeholder="気になったこと、感じたこと..." style="height:120px; margin-top:15px;"></textarea>
 
       <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✓ 記録する</button>
@@ -272,9 +265,8 @@ textarea { resize: none; font-family: sans-serif; }
 
   <!-- 設定タブ -->
   <div id="profileTab" class="tab-content">
-    <!-- カード1: プロフィール -->
-    <div class="section-card">
-      <h2>👤 プロフィール</h2>
+    <div class="card">
+      <h2 style="margin-top:0; margin-bottom:10px; font-size:22px; color:#374151;">👤 プロフィール設定</h2>
       <p style="color:#6b7280; font-size:14px; margin-bottom:30px;">AI分析をより的確にするため、あなたの情報を入力してください</p>
 
       <div class="profile-section">
@@ -292,37 +284,30 @@ textarea { resize: none; font-family: sans-serif; }
         <div id="medicationList"></div>
       </div>
 
+      <div class="profile-section">
+        <h3>🏷️ カスタムタグ</h3>
+        <p style="color:#6b7280; font-size:13px; margin-bottom:15px;">記録時にワンタップで入力できるタグを登録してください</p>
+        <div id="customTagsList"></div>
+      </div>
+
       <button class="btn btn-success" onclick="saveProfile()">✓ プロフィールを保存</button>
-    </div>
 
-    <!-- カード2: 定型文 -->
-    <div class="section-card">
-      <h2>💬 定型文</h2>
-      <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">よく使う言葉を登録しておくと、記録が楽になります</p>
-      <div id="presetList"></div>
-    </div>
+      <div class="backup-section">
+        <h3>💾 データのバックアップ</h3>
+        <p>大切なデータを守るため、定期的にバックアップを取ることをおすすめします</p>
+        
+        <div class="backup-info">
+          <strong>📊 保存されているデータ：</strong>
+          <div id="backupInfo" style="margin-top:8px;"></div>
+        </div>
 
-    <!-- カード3: データ管理 -->
-    <div class="section-card">
-      <h2>💾 データ管理</h2>
-      <p style="color:#6b7280; font-size:14px; margin-bottom:20px;">大切なデータを守るため、定期的にバックアップを取ることをおすすめします</p>
-      
-      <div class="backup-info">
-        <strong>📊 保存されているデータ：</strong>
-        <div id="backupInfo" style="margin-top:8px;"></div>
+        <div class="data-management">
+          <button class="btn btn-info" onclick="exportData()">📤 バックアップ作成</button>
+          <button class="btn btn-info" onclick="importData()">📥 バックアップ復元</button>
+        </div>
+        
+        <p style="margin-top:15px; font-size:12px; color:#92400e;">💡 スマホとPCでデータを移動する時も、この機能を使ってください</p>
       </div>
-
-      <div id="backupReminder" class="backup-reminder hidden">
-        <strong>⚠️ バックアップのお知らせ</strong><br>
-        <span id="backupReminderText"></span>
-      </div>
-
-      <div class="data-management">
-        <button class="btn btn-info" onclick="exportData()">📤 バックアップ作成</button>
-        <button class="btn btn-info" onclick="importData()">📥 バックアップ復元</button>
-      </div>
-      
-      <p style="margin-top:15px; font-size:12px; color:#6b7280;">💡 スマホとPCでデータを移動する時も、この機能を使ってください</p>
     </div>
   </div>
 
@@ -385,7 +370,7 @@ textarea { resize: none; font-family: sans-serif; }
   <div class="card" style="text-align:center; padding:20px; background:transparent; box-shadow:none;">
     <p style="color:#9ca3af; font-size:13px;">🔒 データは全てあなたのデバイスに安全に保存されます</p>
     <p style="color:#9ca3af; font-size:12px; margin-top:8px;">
-      v1.2.0 | 
+      v1.0.0 | 
       <a href="https://docs.google.com/forms/d/e/1FAIpQLScz0mSrhhxfbLGkS7zFycRsr6MJlyGDEoLaPTX1z2PBicdWRw/viewform?usp=dialog" target="_blank" style="color:#9ca3af;">意見箱</a> | 
       <a href="javascript:void(0)" onclick="openTermsModal()" style="color:#9ca3af;">利用規約</a>
     </p>
@@ -398,10 +383,11 @@ let profile = {
   diagnoses: [''],
   characteristics: '', 
   medications: [''],
-  presets: ['よく眠れた', '疲れた', '頭痛', '調子いい']
+  customTags: []
 };
 let isEditing = false;
 let editingDate = null;
+let sliderDragging = { physical: false, mental: false };
 let currentTab = 'record';
 
 function openTermsModal() {
@@ -416,68 +402,879 @@ function closeTermsModal(event) {
   }
 }
 
-function copyLastMemo() {
-  if (records.length === 0) {
-    showNotification('コピーできる記録がありません', 'info');
-    return;
+function init() {
+  const saved = localStorage.getItem('balanceRecords');
+  if (saved) records = JSON.parse(saved);
+  
+  const savedProfile = localStorage.getItem('balanceProfile');
+  if (savedProfile) {
+    const loaded = JSON.parse(savedProfile);
+    profile = {
+      diagnoses: loaded.diagnoses || (loaded.diagnosis ? [loaded.diagnosis] : ['']),
+      characteristics: loaded.characteristics || '',
+      medications: loaded.medications || (loaded.medication ? [loaded.medication] : ['']),
+      customTags: loaded.customTags || []
+    };
   }
   
-  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const lastMemo = sorted[0].memo || '';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').value = today;
+  document.getElementById('dateInput').max = today;
   
-  if (!lastMemo) {
-    showNotification('前回の記録にメモがありません', 'info');
-    return;
-  }
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  document.getElementById('startDate').value = oneMonthAgo.toISOString().split('T')[0];
+  document.getElementById('endDate').value = today;
+  document.getElementById('endDate').max = today;
   
-  document.getElementById('memoInput').value = lastMemo;
-  showNotification('前回のメモをコピーしました', 'info');
+  setupSlider('physical');
+  setupSlider('mental');
+  
+  document.getElementById('aiResultInput').oninput = function() {
+    document.getElementById('aiResultStatus').classList.toggle('hidden', !this.value.trim());
+  };
+  
+  document.getElementById('characteristicsInput').value = profile.characteristics;
+  
+  renderDiagnosisList();
+  renderMedicationList();
+  renderCustomTagsList();
+  renderTagButtons();
+  updateBackupInfo();
+  updatePeriodCount();
+  updateDisplay();
+  updateProfileInfo();
 }
 
-function checkBackupReminder() {
-  const lastBackup = localStorage.getItem('lastBackupDate');
-  const reminderDiv = document.getElementById('backupReminder');
-  const reminderText = document.getElementById('backupReminderText');
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   
-  if (!lastBackup) {
-    reminderDiv.classList.remove('hidden');
-    reminderText.textContent = 'まだバックアップを取っていません。大切なデータを守るため、今すぐバックアップを作成してください。';
-    return;
+  if (tab === 'record') {
+    document.querySelectorAll('.nav-tab')[0].classList.add('active');
+    document.getElementById('recordTab').classList.add('active');
+  } else if (tab === 'profile') {
+    document.querySelectorAll('.nav-tab')[1].classList.add('active');
+    document.getElementById('profileTab').classList.add('active');
+    updateBackupInfo();
+  } else if (tab === 'export') {
+    document.querySelectorAll('.nav-tab')[2].classList.add('active');
+    document.getElementById('exportTab').classList.add('active');
   }
   
-  const lastDate = new Date(lastBackup);
-  const today = new Date();
-  const daysDiff = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+  updateFloatingButton();
+}
+
+function updateBackupInfo() {
+  const info = document.getElementById('backupInfo');
+  const recordCount = records.length;
+  const diagnoses = profile.diagnoses.filter(d => d.trim()).length;
+  const medications = profile.medications.filter(m => m.trim()).length;
+  const tags = profile.customTags.filter(t => t.trim()).length;
   
-  if (daysDiff >= 7) {
-    reminderDiv.classList.remove('hidden');
-    reminderText.textContent = `最後のバックアップから${daysDiff}日経過しています。定期的なバックアップをおすすめします。`;
+  let html = `<div style="color:#374151;">`;
+  html += `• 体調記録：<strong>${recordCount}件</strong><br>`;
+  html += `• 診断名：<strong>${diagnoses}件</strong><br>`;
+  html += `• 服薬情報：<strong>${medications}件</strong><br>`;
+  html += `• カスタムタグ：<strong>${tags}件</strong><br>`;
+  if (profile.characteristics) html += `• 特性：<strong>登録済み</strong><br>`;
+  html += `</div>`;
+  
+  info.innerHTML = html;
+}
+
+function updateFloatingButton() {
+  const btn = document.getElementById('floatingAIBtn');
+  if (currentTab === 'record' && records.length > 0) {
+    btn.classList.remove('hidden');
   } else {
-    reminderDiv.classList.add('hidden');
+    btn.classList.add('hidden');
   }
 }
 
-function renderPresetList() {
-  const container = document.getElementById('presetList');
+function scrollToAI() {
+  switchTab('export');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setupSlider(type) {
+  const slider = document.getElementById(`${type}Slider`);
+  const valueSpan = document.getElementById(`${type}Value`);
+  
+  let isDraggingThumb = false;
+  
+  slider.addEventListener('mousedown', function(e) {
+    const thumb = e.target;
+    if (thumb === slider) {
+      const rect = slider.getBoundingClientRect();
+      const thumbWidth = 48;
+      const mouseX = e.clientX - rect.left;
+      const value = parseInt(slider.value);
+      const valuePercent = (value - 1) / 9;
+      const thumbCenter = rect.width * valuePercent;
+      
+      if (Math.abs(mouseX - thumbCenter) <= thumbWidth / 2) {
+        isDraggingThumb = true;
+      }
+    }
+  });
+  
+  slider.addEventListener('touchstart', function(e) {
+    const rect = slider.getBoundingClientRect();
+    const touch = e.touches[0];
+    const thumbWidth = 48;
+    const touchX = touch.clientX - rect.left;
+    const value = parseInt(slider.value);
+    const valuePercent = (value - 1) / 9;
+    const thumbCenter = rect.width * valuePercent;
+    
+    if (Math.abs(touchX - thumbCenter) <= thumbWidth / 2) {
+      isDraggingThumb = true;
+    }
+  });
+  
+  slider.addEventListener('input', function() {
+    if (isDraggingThumb) {
+      valueSpan.textContent = this.value;
+      updateSliderBackground(this, type);
+    } else {
+      this.value = valueSpan.textContent;
+    }
+  });
+  
+  slider.addEventListener('mouseup', function() {
+    isDraggingThumb = false;
+  });
+  
+  slider.addEventListener('touchend', function() {
+    isDraggingThumb = false;
+  });
+  
+  document.addEventListener('mouseup', function() {
+    isDraggingThumb = false;
+  });
+  
+  updateSliderBackground(slider, type);
+}
+
+function updateSliderBackground(slider, type) {
+  const value = slider.value;
+  const percent = ((value - 1) / 9) * 100;
+  const color = type === 'physical' ? '#86efac' : '#fca5a5';
+  slider.style.background = `linear-gradient(90deg, ${color} ${percent}%, #d1d5db ${percent}%)`;
+}
+
+function renderDiagnosisList() {
+  const container = document.getElementById('diagnosisList');
   container.innerHTML = '';
   
-  if (profile.presets.length === 0) {
-    profile.presets.push('');
+  profile.diagnoses.forEach((diagnosis, index) => {
+    const item = document.createElement('div');
+    item.className = 'profile-item';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = diagnosis;
+    input.placeholder = '例：ADHD、ASD、知的障害など';
+    input.oninput = function() {
+      profile.diagnoses[index] = this.value;
+    };
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.diagnoses.splice(index + 1, 0, '');
+      renderDiagnosisList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.diagnoses.length > 1) {
+        profile.diagnoses.splice(index, 1);
+        renderDiagnosisList();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.diagnoses.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderMedicationList() {
+  const container = document.getElementById('medicationList');
+  container.innerHTML = '';
+  
+  profile.medications.forEach((medication, index) => {
+    const item = document.createElement('div');
+    item.className = 'profile-item';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = medication;
+    input.placeholder = '例：○○（朝1錠、夜1錠）';
+    input.oninput = function() {
+      profile.medications[index] = this.value;
+    };
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.medications.splice(index + 1, 0, '');
+      renderMedicationList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.medications.length > 1) {
+        profile.medications.splice(index, 1);
+        renderMedicationList();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.medications.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderCustomTagsList() {
+  const container = document.getElementById('customTagsList');
+  container.innerHTML = '';
+  
+  if (profile.customTags.length === 0) {
+    profile.customTags.push('');
   }
   
-  profile.presets.forEach((preset, index) => {
+  profile.customTags.forEach((tag, index) => {
     const item = document.createElement('div');
     item.className = 'tag-item';
     
     const input = document.createElement('input');
     input.type = 'text';
-    input.value = preset;
-    input.placeholder = '例：よく眠れた、疲れた、頭痛など';
+    input.value = tag;
+    input.placeholder = '例：#反芻あり、#仕事、#ASMRなど';
     input.oninput = function() {
-      profile.presets[index] = this.value;
-      renderPresetButtons();
+      profile.customTags[index] = this.value;
+      renderTagButtons();
     };
     
     const addBtn = document.createElement('button');
     addBtn.className = 'btn-add';
-    addBtn.textContent = '+
+    addBtn.textContent = '+';
+    addBtn.onclick = function() {
+      profile.customTags.splice(index + 1, 0, '');
+      renderCustomTagsList();
+    };
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = function() {
+      if (profile.customTags.length > 1) {
+        profile.customTags.splice(index, 1);
+        renderCustomTagsList();
+        renderTagButtons();
+      }
+    };
+    
+    item.appendChild(input);
+    item.appendChild(addBtn);
+    if (profile.customTags.length > 1) {
+      item.appendChild(removeBtn);
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function renderTagButtons() {
+  const container = document.getElementById('tagButtons');
+  container.innerHTML = '';
+  
+  const activeTags = profile.customTags.filter(t => t.trim());
+  
+  if (activeTags.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  container.style.display = 'flex';
+  
+  activeTags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-button';
+    btn.textContent = tag;
+    btn.onclick = function() {
+      const memoInput = document.getElementById('memoInput');
+      const currentValue = memoInput.value;
+      memoInput.value = currentValue ? `${currentValue} ${tag}` : tag;
+    };
+    container.appendChild(btn);
+  });
+}
+
+function saveProfile() {
+  profile.characteristics = document.getElementById('characteristicsInput').value.trim();
+  profile.diagnoses = profile.diagnoses.filter(d => d.trim());
+  profile.medications = profile.medications.filter(m => m.trim());
+  profile.customTags = profile.customTags.filter(t => t.trim());
+  
+  if (profile.diagnoses.length === 0) profile.diagnoses = [''];
+  if (profile.medications.length === 0) profile.medications = [''];
+  
+  localStorage.setItem('balanceProfile', JSON.stringify(profile));
+  showNotification('✓ プロフィールを保存しました！');
+  updateProfileInfo();
+  updateBackupInfo();
+  renderTagButtons();
+}
+
+function updateProfileInfo() {
+  const diagnoses = profile.diagnoses.filter(d => d.trim());
+  const medications = profile.medications.filter(m => m.trim());
+  const hasProfile = diagnoses.length > 0 || profile.characteristics || medications.length > 0;
+  const box = document.getElementById('profileInfoBox');
+  
+  if (hasProfile) {
+    let info = [];
+    if (diagnoses.length > 0) info.push(`診断: ${diagnoses.join('、')}`);
+    if (profile.characteristics) info.push(`特性: ${profile.characteristics}`);
+    if (medications.length > 0) info.push(`服薬: ${medications.join('、')}`);
+    
+    document.getElementById('profileInfoText').textContent = info.join(' / ');
+    box.classList.remove('hidden');
+  } else {
+    box.classList.add('hidden');
+  }
+}
+
+function saveRecord() {
+  const date = document.getElementById('dateInput').value;
+  const physical = parseInt(document.getElementById('physicalSlider').value);
+  const mental = parseInt(document.getElementById('mentalSlider').value);
+  const memo = document.getElementById('memoInput').value.trim();
+  
+  if (isEditing && editingDate !== date) {
+    records = records.filter(r => r.date !== editingDate && r.date !== date);
+  } else {
+    records = records.filter(r => r.date !== date);
+  }
+  
+  records.push({ date, physical, mental, memo });
+  records.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  localStorage.setItem('balanceRecords', JSON.stringify(records));
+  showNotification(isEditing ? '記録を更新しました！' : '記録しました！');
+  
+  isEditing = false;
+  editingDate = null;
+  resetForm();
+  updateDisplay();
+}
+
+function editRecord(date) {
+  const record = records.find(r => r.date === date);
+  if (!record) return;
+  
+  isEditing = true;
+  editingDate = date;
+  
+  switchTab('record');
+  
+  setTimeout(() => {
+    document.getElementById('dateInput').value = record.date;
+    document.getElementById('physicalSlider').value = record.physical;
+    document.getElementById('mentalSlider').value = record.mental;
+    document.getElementById('memoInput').value = record.memo;
+    document.getElementById('physicalValue').textContent = record.physical;
+    document.getElementById('mentalValue').textContent = record.mental;
+    
+    updateSliderBackground(document.getElementById('physicalSlider'), 'physical');
+    updateSliderBackground(document.getElementById('mentalSlider'), 'mental');
+    
+    document.getElementById('inputCard').classList.add('editing');
+    document.getElementById('editBanner').classList.remove('hidden');
+    document.getElementById('editingDateText').textContent = `${date}のデータを編集中です`;
+    document.getElementById('dateLabel').textContent = '📅 変更後の日付';
+    document.getElementById('saveBtn').textContent = '✓ 更新する';
+    document.getElementById('saveBtn').className = 'btn btn-warning';
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
+  
+  showNotification(`${date}のデータを編集中`, 'info');
+}
+
+function cancelEdit() {
+  isEditing = false;
+  editingDate = null;
+  resetForm();
+  showNotification('編集をキャンセルしました', 'info');
+}
+
+function resetForm() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').value = today;
+  document.getElementById('physicalSlider').value = 5;
+  document.getElementById('mentalSlider').value = 5;
+  document.getElementById('memoInput').value = '';
+  document.getElementById('physicalValue').textContent = '5';
+  document.getElementById('mentalValue').textContent = '5';
+  
+  updateSliderBackground(document.getElementById('physicalSlider'), 'physical');
+  updateSliderBackground(document.getElementById('mentalSlider'), 'mental');
+  
+  document.getElementById('inputCard').classList.remove('editing');
+  document.getElementById('editBanner').classList.add('hidden');
+  document.getElementById('dateLabel').textContent = '📅 記録する日付';
+  document.getElementById('saveBtn').textContent = '✓ 記録する';
+  document.getElementById('saveBtn').className = 'btn btn-primary';
+}
+
+function toggleRecord(index) {
+  const record = document.getElementById(`record-${index}`);
+  record.classList.toggle('expanded');
+}
+
+function updateDisplay() {
+  const hasRecords = records.length > 0;
+  document.getElementById('chartCard').classList.toggle('hidden', !hasRecords);
+  document.getElementById('recordsCard').classList.toggle('hidden', !hasRecords);
+  
+  if (hasRecords) {
+    drawChart();
+    displayRecords();
+    updatePeriodCount();
+  }
+  
+  updateFloatingButton();
+}
+
+function drawChart() {
+  const canvas = document.getElementById('chartCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = 450 * dpr;
+  ctx.scale(dpr, dpr);
+  
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const last7 = sorted.slice(0, 7).reverse();
+  
+  if (last7.length === 0) return;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  const padding = 60;
+  const bottomPadding = 70;
+  const chartWidth = canvas.offsetWidth - padding * 2;
+  const chartHeight = 450 - padding - bottomPadding;
+  const barSpacing = chartWidth / (last7.length * 2.5 + 1);
+  const barWidth = barSpacing * 0.9;
+  const cornerRadius = 8;
+  
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 10; i += 2) {
+    const y = padding + chartHeight - (i / 10 * chartHeight);
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(canvas.offsetWidth - padding, y);
+    ctx.stroke();
+  }
+  
+  ctx.fillStyle = '#6b7280';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 10; i += 2) {
+    const y = padding + chartHeight - (i / 10 * chartHeight);
+    ctx.fillText(i, padding - 15, y + 5);
+  }
+  
+  ctx.strokeStyle = '#9ca3af';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding + chartHeight);
+  ctx.lineTo(canvas.offsetWidth - padding, padding + chartHeight);
+  ctx.stroke();
+  
+  function drawRoundedBar(x, y, width, height, radius, color) {
+    if (height < radius) radius = height;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height);
+    ctx.lineTo(x, y + height);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+  
+  last7.forEach((record, index) => {
+    const x = padding + (index * 2.5 + 0.5) * barSpacing;
+    const centerX = x + barWidth + 2.5;
+    
+    const physicalHeight = (record.physical / 10) * chartHeight;
+    drawRoundedBar(x, padding + chartHeight - physicalHeight, barWidth, physicalHeight, cornerRadius, '#86efac');
+    
+    const mentalHeight = (record.mental / 10) * chartHeight;
+    drawRoundedBar(x + barWidth + 5, padding + chartHeight - mentalHeight, barWidth, mentalHeight, cornerRadius, '#fca5a5');
+    
+    const date = new Date(record.date);
+    const label = `${date.getMonth() + 1}/${date.getDate()}`;
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, centerX, padding + chartHeight + 30);
+  });
+  
+  ctx.fillStyle = '#86efac';
+  ctx.fillRect(padding, 15, 25, 25);
+  ctx.fillStyle = '#374151';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('体', padding + 35, 33);
+  
+  ctx.fillStyle = '#fca5a5';
+  ctx.fillRect(padding + 100, 15, 25, 25);
+  ctx.fillStyle = '#374151';
+  ctx.fillText('心', padding + 135, 33);
+}
+
+function displayRecords() {
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  let html = '';
+  sorted.forEach((r, i) => {
+    html += `<div class="record" id="record-${i}" onclick="toggleRecord(${i})">
+      <div class="record-header">
+        <div class="record-info">
+          <strong style="font-size:15px;">${r.date}</strong>
+          <span class="badge badge-green">体 ${r.physical}</span>
+          <span class="badge badge-red">心 ${r.mental}</span>
+        </div>
+      </div>
+      <div class="record-detail">
+        ${r.memo ? `<p style="margin:0 0 15px 0; color:#374151; line-height:1.6;"><strong>メモ:</strong> ${r.memo}</p>` : '<p style="margin:0 0 15px 0; color:#9ca3af;">メモなし</p>'}
+        <button class="btn btn-info btn-small" onclick="event.stopPropagation(); editRecord('${r.date}')">✏️ 編集</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('recordsList').innerHTML = html;
+}
+
+function setPeriod(days) {
+  const end = new Date();
+  const start = new Date();
+  
+  if (days === 1) {
+    start.setDate(end.getDate());
+  } else {
+    start.setDate(start.getDate() - days + 1);
+  }
+  
+  document.getElementById('startDate').value = start.toISOString().split('T')[0];
+  document.getElementById('endDate').value = end.toISOString().split('T')[0];
+  
+  document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  updatePeriodCount();
+}
+
+function updatePeriodCount() {
+  const filtered = getFilteredRecords();
+  const days = filtered.length;
+  document.getElementById('periodCount').textContent = `${days}日分`;
+  
+  let periodType = '';
+  if (days === 1) periodType = '（今日の詳細分析）';
+  else if (days >= 2 && days <= 7) periodType = '（週のリズム分析）';
+  else if (days >= 8 && days <= 31) periodType = '（月次バイオリズム）';
+  else if (days > 31) periodType = '（長期トレンド分析）';
+  
+  document.getElementById('periodType').textContent = periodType;
+}
+
+function getFilteredRecords() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  return records.filter(r => r.date >= start && r.date <= end).sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+function showAIPrompt() {
+  const filtered = getFilteredRecords();
+  if (filtered.length === 0) {
+    showNotification('指定期間にデータがありません', 'error');
+    return;
+  }
+  
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const days = filtered.length;
+  const dataText = filtered.map(r => `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`).join('\n');
+  
+  let profileSection = '';
+  const diagnoses = profile.diagnoses.filter(d => d.trim());
+  const medications = profile.medications.filter(m => m.trim());
+  
+  if (diagnoses.length > 0 || profile.characteristics || medications.length > 0) {
+    profileSection = '【私の背景情報】\n';
+    if (diagnoses.length > 0) profileSection += `診断名: ${diagnoses.join('、')}\n`;
+    if (profile.characteristics) profileSection += `特性・困りごと: ${profile.characteristics}\n`;
+    if (medications.length > 0) profileSection += `服薬内容: ${medications.join('、')}\n`;
+    profileSection += '\n';
+  }
+  
+  let analysisInstruction = '';
+  if (days === 1) {
+    analysisInstruction = `【今日の詳細分析をお願いします】
+- 体と心の数値から読み取れる今日の状態
+- メモの内容から推測される具体的な出来事や要因
+- 明日以降に活かせる具体的なアドバイス`;
+  } else if (days >= 2 && days <= 7) {
+    analysisInstruction = `【週のリズム分析をお願いします】
+- 週の中での体調の波のパターン
+- 曜日や時期による傾向
+- 週単位で意識すべき生活リズムの改善点`;
+  } else if (days >= 8 && days <= 31) {
+    analysisInstruction = `【月次バイオリズム分析をお願いします】
+- 1ヶ月を通じた体と心のバランスの変化
+- 良い期間と苦しい期間の特徴
+- 月単位で調整すべき生活習慣や環境要因`;
+  } else {
+    analysisInstruction = `【長期トレンド分析をお願いします】
+- 長期的な体調の推移とパターン
+- 環境や季節による影響の可能性
+- 今後の生活設計に向けた中長期的な提言`;
+  }
+  
+  const prompt = `私は自分の状態を説明するのが苦手です。${profileSection ? '以下の背景情報を踏まえた上で、' : ''}${start}〜${end}の記録（${days}日分）を詳細に分析し、2つのセクションに分けて回答してください。
+
+${profileSection}${analysisInstruction}
+
+【回答の構成】
+
+**セクション1: 私への寄り添いメッセージ**
+優しい口調で、私に向けて以下を伝えてください：
+- この期間の頑張りや変化への労いの言葉
+- 気づいたパターンや傾向についてのアドバイス
+- 今後気をつけるとよいこと
+
+**セクション2: 支援員さんへの共有用（必ず以下の形式で）**
+
+▼ここからコピー▼
+
+【期間】
+${start} 〜 ${end}（${days}日分）
+
+【バランス分析】
+体と心の数値の乖離、バランスの状態について
+
+【変化のパターン】
+数値の推移から見える傾向、波の特徴
+
+【注意すべき点】
+今後のリスクや気をつけるべきこと
+
+【支援員さんへ】
+面談で確認してほしいポイント、サポートのアドバイス
+
+▲ここまでコピー▲
+
+※「▼ここからコピー▼」と「▲ここまでコピー▲」の目印は必ず入れてください。この間の内容をメールアプリに貼り付けます。
+
+データ：
+${dataText}`;
+  
+  document.getElementById('aiPromptText').value = prompt;
+  document.getElementById('aiPromptPreview').classList.remove('hidden');
+}
+
+function copyAIPrompt() {
+  const text = document.getElementById('aiPromptText').value;
+  navigator.clipboard.writeText(text).then(() => {
+    showNotification('✓ AI分析用プロンプトをコピーしました！');
+  }).catch(() => {
+    showNotification('コピーに失敗しました。テキストを選択してコピーしてください', 'error');
+  });
+}
+
+function generateEmail() {
+  const filtered = getFilteredRecords();
+  if (filtered.length === 0) {
+    showNotification('指定期間にデータがありません', 'error');
+    return;
+  }
+  
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const aiResult = document.getElementById('aiResultInput').value.trim();
+  const dataText = filtered.map(r => `日付: ${r.date}\n体の調子: ${r.physical}/10\n心の調子: ${r.mental}/10\nメモ: ${r.memo || 'なし'}\n`).join('\n');
+  
+  const aiSection = aiResult ? `
+─────────────────────────
+【AIによる分析結果】
+─────────────────────────
+
+${aiResult}
+
+─────────────────────────
+
+` : '';
+  
+  const email = `件名: 私の体調レポート（${start} 〜 ${end}）
+
+本文:
+
+支援員様
+
+お疲れ様です。私の体調記録（体と心の10段階評価）を送付します。面談の際の参考にしていただければ幸いです。
+
+${aiSection}【期間】
+${start} 〜 ${end}（全${filtered.length}日分）
+
+【詳細データ】
+
+${dataText}
+
+よろしくお願いいたします。`;
+  
+  document.getElementById('emailText').value = email;
+  document.getElementById('emailPreview').classList.remove('hidden');
+}
+
+function copyEmail() {
+  const text = document.getElementById('emailText').value;
+  navigator.clipboard.writeText(text).then(() => {
+    showNotification('✓ メール本文をコピーしました！');
+  }).catch(() => {
+    showNotification('コピーに失敗しました。テキストを選択してコピーしてください', 'error');
+  });
+}
+
+function exportData() {
+  if (records.length === 0 && !profile.characteristics && profile.diagnoses.filter(d => d.trim()).length === 0) {
+    showNotification('エクスポートするデータがありません', 'error');
+    return;
+  }
+  
+  const exportData = {
+    version: '1.0.0',
+    exportDate: new Date().toISOString(),
+    records: records,
+    profile: profile
+  };
+  
+  const dataStr = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `balance-board-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  showNotification(`✓ バックアップファイルを作成しました！`);
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const imported = JSON.parse(event.target.result);
+        
+        let recordsToImport = [];
+        let profileToImport = { diagnoses: [''], characteristics: '', medications: [''], customTags: [] };
+        
+        if (imported.records && Array.isArray(imported.records)) {
+          recordsToImport = imported.records;
+          if (imported.profile) {
+            const p = imported.profile;
+            profileToImport = {
+              diagnoses: p.diagnoses || (p.diagnosis ? [p.diagnosis] : ['']),
+              characteristics: p.characteristics || '',
+              medications: p.medications || (p.medication ? [p.medication] : ['']),
+              customTags: p.customTags || []
+            };
+          }
+        } else if (Array.isArray(imported)) {
+          recordsToImport = imported;
+        } else {
+          throw new Error('無効なデータ形式');
+        }
+        
+        const confirmMsg = `${recordsToImport.length}件の記録データを復元しますか？\n※既存のデータは上書きされます`;
+        const confirm = window.confirm(confirmMsg);
+        if (!confirm) return;
+        
+        records = recordsToImport;
+        profile = profileToImport;
+        
+        localStorage.setItem('balanceRecords', JSON.stringify(records));
+        localStorage.setItem('balanceProfile', JSON.stringify(profile));
+        
+        document.getElementById('characteristicsInput').value = profile.characteristics;
+        
+        renderDiagnosisList();
+        renderMedicationList();
+        renderCustomTagsList();
+        renderTagButtons();
+        updateDisplay();
+        updateProfileInfo();
+        updateBackupInfo();
+        showNotification(`✓ バックアップから${recordsToImport.length}件のデータを復元しました！`);
+      } catch (error) {
+        showNotification('バックアップファイルの読み込みに失敗しました', 'error');
+        console.error(error);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function showNotification(msg, type = 'success') {
+  const notif = document.getElementById('notification');
+  notif.textContent = msg;
+  notif.className = 'notification';
+  if (type === 'error') notif.classList.add('error');
+  if (type === 'info') notif.classList.add('info');
+  setTimeout(() => notif.classList.add('hidden'), 3000);
+}
+
+window.addEventListener('resize', () => {
+  if (records.length > 0) drawChart();
+});
+
+init();
+</script>
+
+</body>
+</html>
